@@ -1,7 +1,7 @@
 import random
 import math
 from agent_mc.boardnode import BoardNode
-from agent_mc.utils import string_to_board, generate_possible_moves, place_tetromino, render_board, game_over, winner
+from agent_mc.utils import string_to_board, generate_possible_moves, place_tetromino, render_board, winner
 from referee.game import PlayerColor, Action, PlaceAction, Coord, Board
 
 class MCTS:
@@ -26,7 +26,6 @@ class MCTS:
     def expansion(self, node: BoardNode) -> BoardNode:
         # Create a new child node for each possible move
         board_dict = string_to_board(node.board_str)
-        print(render_board(board_dict, None, True))
         for move in generate_possible_moves(board_dict, self.mycolor):
             new_board = place_tetromino(board_dict, move, self.mycolor)
             new_node = BoardNode(new_board, self.mycolor, node, move)
