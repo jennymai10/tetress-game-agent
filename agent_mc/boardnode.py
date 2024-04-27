@@ -33,6 +33,6 @@ class BoardNode:
     def print_tree(self, level=0):
         print("Depth: ", level, " | Visited: ", self.visit, " | UCT: ", self.win, "/", self.win + self.loss + self.draw)
         if self.visit > 0:
-            print(render_board(string_to_board(self.board_str), None, True))
+            print(render_board(string_to_board(self.board_str), True))
         for child in self.children:
             child.print_tree(level + 1)

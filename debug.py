@@ -5,10 +5,10 @@ from agent_mc.mcts import MCTS
 # Test the learning process of MC
 def play_game(board_dict: dict[Coord, PlayerColor], mycolor: PlayerColor):
     mcts = MCTS(board_dict, mycolor)
-    mcts.run(3)
+    mcts.run(25)
     best_child = mcts.selection(mcts.root)
     print("Chosen move: ", best_child.uct, best_child.action)
-    print(render_board(string_to_board(best_child.board_str), None, ansi=True))
+    print(render_board(string_to_board(best_child.board_str), ansi=True))
 
 # Load test-vis1.csv board
 target = None

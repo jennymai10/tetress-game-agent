@@ -36,17 +36,13 @@ def apply_ansi(text: str, bold: bool = True, color: str | None = None):
     """
     bold_code = "\033[1m" if bold else ""
     color_code = ""
-    if color == "r":
+    if color == "R":
         color_code = "\033[31m"
-    if color == "b":
+    if color == "B":
         color_code = "\033[34m"
     return f"{bold_code}{color_code}{text}\033[0m"
 
-def render_board(
-    board: dict[Coord, PlayerColor], 
-    target: Coord | None = None,
-    ansi: bool = False
-) -> str:
+def render_board(board: dict[Coord, PlayerColor], ansi: bool = False) -> str:
     """
     Visualise the Tetress board via a multiline ASCII string, including
     optional ANSI styling for terminals that support this.
@@ -60,12 +56,11 @@ def render_board(
     for r in range(BOARD_N):
         for c in range(BOARD_N):
             if board.get(Coord(r, c), None):
-                is_target = target is not None and Coord(r, c) == target
                 color = board[Coord(r, c)]
-                color = "r" if color == PlayerColor.RED else "b"
-                text = f"{color}" if not is_target else f"{color.upper()}"
+                color = "R" if color == PlayerColor.RED else "B"
+                text = f"{color}"
                 if ansi:
-                    output += apply_ansi(text, color=color, bold=is_target)
+                    output += apply_ansi(text, color=color, bold=True)
                 else:
                     output += text
             else:
@@ -93,10 +88,6 @@ def get_valid_neighbors(coord: Coord, board: dict[Coord, PlayerColor], board_siz
         new_r = (coord.r + dr) % board_size
         new_c = (coord.c + dc) % board_size
         new_coord = Coord(new_r, new_c)
-
-        # cell_value = board.get(new_coord)  # For debugging
-        # print(f"Checking {new_coord}: {cell_value}, valid: {is_valid_cell(board, new_coord, target)}")
-
         if is_valid_cell(board, new_coord):
             neighbors.append(new_coord)
     return neighbors
@@ -105,11 +96,7 @@ def get_starting_cells(board: dict[Coord, PlayerColor], mycolor: PlayerColor) ->
     """
     Get the starting cells of my color
     """    
-    starting = []
-    for cell in board:
-        if board.get(cell) == mycolor:
-            starting.append(cell)
-    return starting
+    return [cell for cell in board.keys() if board[cell] == mycolor]
 
 def get_all_tetromino_shapes():
     # Define all tetromino shapes in their fixed orientations
@@ -136,21 +123,20 @@ def get_all_tetromino_shapes():
     }
 
     all_shapes = [shape for shapes in tetrominoes.values() for shape in shapes]
-    # weights = [0, 0, 3, 2, 2, 2, 2, 0.9, 0.9, 0.9, 0.9, 1, 1, 1, 1, 4, 4, 4, 4]
-    return all_shapes #, weights
+    return all_shapes
 
 def generate_possible_moves(board: dict[Coord, PlayerColor], mycolor: PlayerColor) -> list[PlaceAction]:
     possible_moves = []
     all_tetrominoes = get_all_tetromino_shapes()
     starting_cells = get_starting_cells(board, mycolor)
     neighbors = []
-    states = []
+    states = set()
 
     for cell in starting_cells:
         neighbors.append(get_valid_neighbors(cell, board, 11))
 
     for neigh in neighbors:
-        for index, tetro in enumerate(all_tetrominoes):
+        for _ , tetro in enumerate(all_tetrominoes):
 
             for n in neigh:
                 c1 = Coord((n.r + tetro[0][0]) % 11, (n.c + tetro[0][1]) % 11)
@@ -160,8 +146,9 @@ def generate_possible_moves(board: dict[Coord, PlayerColor], mycolor: PlayerColo
                 action = PlaceAction(c1, c2, c3, c4)
                 if is_valid_placement(action, board, mycolor):
                     new_board = place_tetromino(board, action, mycolor)
-                    if board_to_string(new_board) not in states:
-                        states.append(board_to_string(new_board))
+                    board_str = board_to_string(new_board)
+                    if board_str not in states:
+                        states.add(board_str)
                         possible_moves.append(action)
                 c1 = Coord((n.r + tetro[0][0]) % 11, (n.c - tetro[0][1]) % 11)
                 c2 = Coord((n.r + tetro[1][0]) % 11, (n.c - tetro[1][1]) % 11)
@@ -170,8 +157,9 @@ def generate_possible_moves(board: dict[Coord, PlayerColor], mycolor: PlayerColo
                 action = PlaceAction(c1, c2, c3, c4)
                 if is_valid_placement(action, board, mycolor):
                     new_board = place_tetromino(board, action, mycolor)
-                    if board_to_string(new_board) not in states:
-                        states.append(board_to_string(new_board))
+                    board_str = board_to_string(new_board)
+                    if board_str not in states:
+                        states.add(board_str)
                         possible_moves.append(action)
                 c1 = Coord((n.r - tetro[0][0]) % 11, (n.c + tetro[0][1]) % 11)
                 c2 = Coord((n.r - tetro[1][0]) % 11, (n.c + tetro[1][1]) % 11)
@@ -180,8 +168,9 @@ def generate_possible_moves(board: dict[Coord, PlayerColor], mycolor: PlayerColo
                 action = PlaceAction(c1, c2, c3, c4)
                 if is_valid_placement(action, board, mycolor):
                     new_board = place_tetromino(board, action, mycolor)
-                    if board_to_string(new_board) not in states:
-                        states.append(board_to_string(new_board))
+                    board_str = board_to_string(new_board)
+                    if board_str not in states:
+                        states.add(board_str)
                         possible_moves.append(action)
                 c1 = Coord((n.r - tetro[0][0]) % 11, (n.c - tetro[0][1]) % 11)
                 c2 = Coord((n.r - tetro[1][0]) % 11, (n.c - tetro[1][1]) % 11)
@@ -190,48 +179,49 @@ def generate_possible_moves(board: dict[Coord, PlayerColor], mycolor: PlayerColo
                 action = PlaceAction(c1, c2, c3, c4)
                 if is_valid_placement(action, board, mycolor):
                     new_board = place_tetromino(board, action, mycolor)
-                    if board_to_string(new_board) not in states:
-                        states.append(board_to_string(new_board))
+                    board_str = board_to_string(new_board)
+                    if board_str not in states:
+                        states.add(board_str)
                         possible_moves.append(action)
     return possible_moves
 
         
 def is_valid_placement(positions: PlaceAction, board, mycolor: PlayerColor) -> bool:
-    adjacent = []
+    adjacent = set()
     for cell in [positions.c1, positions.c2, positions.c3, positions.c4]:
-        if board.get(cell) == PlayerColor.RED or board.get(cell) == PlayerColor.BLUE:
+        if board.get(cell) is not None:
             return False
         for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
             new_r = (cell.r + dr) % 11
             new_c = (cell.c + dc) % 11
             new_coord = Coord(new_r, new_c)
-            adjacent.append(new_coord)
-    for cell in adjacent:
-        if board.get(cell) == mycolor:
-            return True
-    return False
+            adjacent.add(new_coord)
+    return any(board.get(cell) == mycolor for cell in adjacent)
 
 def place_tetromino(board: dict[Coord, PlayerColor], action: PlaceAction, mycolor: PlayerColor) -> dict[Coord, PlayerColor]:
     new_board = board.copy()
     for pos in [action.c1, action.c2, action.c3, action.c4]:
         new_board[pos] = mycolor
+    rows_to_clear = set()
+    cols_to_clear = set()
     for row in range(11):
-        filled_line = all(board.get(Coord(row, col)) is not None for col in range(11))
-        if filled_line:
-            for col in range(11):
-                board[Coord(row, col)] = None
-
+        if all(new_board.get(Coord(row, col)) is not None for col in range(11)):
+            rows_to_clear.add(row)
     for col in range(11):
-        filled_line = all(board.get(Coord(row, col)) is not None for row in range(11))
-        if filled_line:
-            for row in range(11):
-                board[Coord(row, col)] = None
+        if all(new_board.get(Coord(row, col)) is not None for row in range(11)):
+            cols_to_clear.add(col)
+    for row in rows_to_clear:
+        for col in range(11):
+            new_board[Coord(row, col)] = None
+    for col in cols_to_clear:
+        for row in range(11):
+            new_board[Coord(row, col)] = None
     return new_board
 
-def game_over(board: dict[Coord, PlayerColor]) -> bool:
-    l1 = generate_possible_moves(board, PlayerColor.RED)
-    l2 = generate_possible_moves(board, PlayerColor.BLUE)
-    return len(l1) == 0 and len(l2) == 0
+# def game_over(board: dict[Coord, PlayerColor]) -> bool:
+#     l1 = generate_possible_moves(board, PlayerColor.RED)
+#     l2 = generate_possible_moves(board, PlayerColor.BLUE)
+#     return len(l1) == 0 and len(l2) == 0
 
 def winner(board: dict[Coord, PlayerColor], turn: PlayerColor) -> PlayerColor | None:
     red_count = sum(1 for color in board.values() if color == PlayerColor.RED)
@@ -242,29 +232,3 @@ def winner(board: dict[Coord, PlayerColor], turn: PlayerColor) -> PlayerColor | 
         return PlayerColor.BLUE
     else:
         return None
-    
-
-
-
-
-# def goal_reached(board: dict[Coord, PlayerColor], target: Coord) -> bool:
-#     return board.get(target) == None
-
-# def delete_filled(board: dict[Coord, PlayerColor], board_size = 11) -> dict[Coord, PlayerColor]:
-#     """
-#     Check if there is any filled vertical or horizontal line in board
-#     If yes, that line will be emptied out. The updated board is return.
-#     """
-#     for row in range(board_size):
-#         filled_line = all(board.get(Coord(row, col)) is not None for col in range(board_size))
-#         if filled_line:
-#             for col in range(board_size):
-#                 board[Coord(row, col)] = None
-
-#     for col in range(board_size):
-#         filled_line = all(board.get(Coord(row, col)) is not None for row in range(board_size))
-#         if filled_line:
-#             for row in range(board_size):
-#                 board[Coord(row, col)] = None
-
-#     return board
