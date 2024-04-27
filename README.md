@@ -1,3 +1,7 @@
+# Project Report
+
+https://docs.google.com/document/d/18uYqsBZb26Ohycp3FaA2OgjRpdJT1l2NbimCtKR6hoU/edit?usp=sharing
+
 ## How to set python as python3:
 
 alias python=python3
