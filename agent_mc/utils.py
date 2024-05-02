@@ -42,7 +42,7 @@ def apply_ansi(text: str, bold: bool = True, color: str | None = None):
         color_code = "\033[34m"
     return f"{bold_code}{color_code}{text}\033[0m"
 
-def render_board(board: dict[Coord, PlayerColor], ansi: bool = False) -> str:
+def render_board(board: dict[Coord, PlayerColor], ansi: bool = True) -> str:
     """
     Visualise the Tetress board via a multiline ASCII string, including
     optional ANSI styling for terminals that support this.
@@ -137,7 +137,6 @@ def generate_possible_moves(board: dict[Coord, PlayerColor], mycolor: PlayerColo
 
     for neigh in neighbors:
         for _ , tetro in enumerate(all_tetrominoes):
-
             for n in neigh:
                 c1 = Coord((n.r + tetro[0][0]) % 11, (n.c + tetro[0][1]) % 11)
                 c2 = Coord((n.r + tetro[1][0]) % 11, (n.c + tetro[1][1]) % 11)
@@ -184,7 +183,6 @@ def generate_possible_moves(board: dict[Coord, PlayerColor], mycolor: PlayerColo
                         states.add(board_str)
                         possible_moves.append(action)
     return possible_moves
-
         
 def is_valid_placement(positions: PlaceAction, board, mycolor: PlayerColor) -> bool:
     adjacent = set()

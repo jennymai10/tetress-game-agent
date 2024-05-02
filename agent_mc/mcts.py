@@ -18,7 +18,7 @@ class MCTS:
             self.expansion(node)
             playout = self.simulation(node)
             self.backpropagation(node, playout)
-        self.root.print_tree()
+        # self.root.print_tree()
 
     def selection(self, node: BoardNode) -> BoardNode:
         return max(node.children, key=lambda child: child.uct)
@@ -30,6 +30,8 @@ class MCTS:
             new_board = place_tetromino(board_dict, move, self.mycolor)
             new_node = BoardNode(new_board, self.mycolor, node, move)
             node.children.append(new_node)
+        if not node.children:
+            return node
         return random.choice(node.children)
 
     def simulation(self, node: BoardNode) -> PlayerColor | None:
