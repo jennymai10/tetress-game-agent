@@ -198,6 +198,31 @@ def generate_possible_moves(board: dict[Coord, PlayerColor], mycolor: PlayerColo
                         possible_moves.append(action)
     return possible_moves
 
+# def generate_possible_moves(board: dict[Coord, PlayerColor], color: PlayerColor) -> list[PlaceAction]:
+#     possible_moves = []
+#     all_tetrominoes = get_all_tetromino_shapes()
+#     states = set()
+
+#     for r in range(BOARD_N):
+#         for c in range(BOARD_N):
+#             cell = Coord(r, c)
+#             for tetro in all_tetrominoes:
+#                 for dx, dy in [(1, 1), (1, -1), (-1, 1), (-1, -1)]:
+#                     c1 = Coord((cell.r + dx * tetro[0][0]) % 11, (cell.c + dy * tetro[0][1]) % 11)
+#                     c2 = Coord((cell.r + dx * tetro[1][0]) % 11, (cell.c + dy * tetro[1][1]) % 11)
+#                     c3 = Coord((cell.r + dx * tetro[2][0]) % 11, (cell.c + dy * tetro[2][1]) % 11)
+#                     c4 = Coord((cell.r + dx * tetro[3][0]) % 11, (cell.c + dy * tetro[3][1]) % 11)
+#                     action = PlaceAction(c1, c2, c3, c4)
+#                     if is_valid_placement(action, board, color):
+#                         new_board = place_tetromino(board, action, color)
+#                         new_state = board_to_string(new_board)
+#                         if new_state not in states:
+#                             states.add(new_state)
+#                             possible_moves.append(action)
+
+#     print(len(possible_moves), "possible moves")
+#     return possible_moves
+
         
 def is_valid_placement(positions: PlaceAction, board, mycolor: PlayerColor) -> bool:
     adjacent = []

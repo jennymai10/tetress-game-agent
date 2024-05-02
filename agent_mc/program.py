@@ -2,9 +2,8 @@
 # Project Part B: Game Playing Agent
 
 from referee.game import PlayerColor, Action, PlaceAction, Coord
-from agent_mc.utils import render_board, string_to_board, place_tetromino
-from agent_mc.mcts import MCTS
-from agent_mc.utils import generate_possible_moves
+from .utils import render_board, string_to_board, place_tetromino, generate_possible_moves
+from .mcts import MCTS
 
 class Agent:
     """
