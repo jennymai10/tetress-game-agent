@@ -26,6 +26,11 @@ class Agent:
                 print("Testing: I am playing as RED")
             case PlayerColor.BLUE:
                 print("Testing: I am playing as BLUE")
+    
+    def get_color(self) -> PlayerColor:
+        return self.color
+    def get_board(self) -> PlayerColor:
+        return self.board
 
     def action(self, **referee: dict) -> Action:
         """
@@ -37,12 +42,12 @@ class Agent:
         if sum(1 for color in self.board.values() if color == self.color) == 0:
             return PlaceAction(Coord(2,1), Coord(2,2), Coord(2,3), Coord(1,2))
         mcts = MCTS(self.board, self.color)
-        mcts.run(10)
+        mcts.run(5)
         best_child = mcts.selection(mcts.root)
         action = best_child.action
         return action
 
-    def update(self, color: PlayerColor, action: Action, **referee: dict):
+    def update(self, color: PlayerColor, action: Action, **referee: dict) -> None:
         """
         This method is called by the referee after an agent has taken their
         turn. You should use it to update the agent's internal game state. 
