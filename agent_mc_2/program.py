@@ -5,7 +5,7 @@ from referee.game import PlayerColor, Action, PlaceAction, Coord
 from .utils import render_board, string_to_board, place_tetromino, generate_possible_moves
 from .mcts import MCTS
 
-class Agent:
+class Agent_MC_2:
     """
     This class is the "entry point" for your agent, providing an interface to
     respond to various Tetress game events.
@@ -42,7 +42,7 @@ class Agent:
         if sum(1 for color in self.board.values() if color == self.color) == 0:
             return PlaceAction(Coord(2,1), Coord(2,2), Coord(2,3), Coord(1,2))
         
-        mcts = MCTS(self.board, self.color, 15, 0.5)
+        mcts = MCTS(self.board, self.color, 10, 0.5)
 
         best_child = mcts.selection(mcts.root)
         action = best_child.action
