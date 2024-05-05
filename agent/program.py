@@ -41,8 +41,7 @@ class Agent:
             return PlaceAction(Coord(5,4), Coord(5,5), Coord(5,6), Coord(4,5))
         if sum(1 for color in self.board.values() if color == self.color) == 0:
             return PlaceAction(Coord(2,1), Coord(2,2), Coord(2,3), Coord(1,2))
-        mcts = MCTS(self.board, self.color)
-        mcts.run(5)
+        mcts = MCTS(self.board, self.color, 40, 0.5)
         best_child = mcts.selection(mcts.root)
         action = best_child.action
         return action

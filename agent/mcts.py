@@ -1,14 +1,16 @@
 import random
 import math
-from agent_mc.boardnode import BoardNode
-from agent_mc.utils import string_to_board, generate_possible_moves, place_tetromino, render_board, winner
+from .boardnode import BoardNode
+from .utils import string_to_board, generate_possible_moves, place_tetromino, render_board, winner
 from referee.game import PlayerColor, Action, PlaceAction, Coord, Board
 
 class MCTS:
-    def __init__(self, root_board_dict: dict[Coord, PlayerColor], color: PlayerColor):
+    def __init__(self, root_board_dict: dict[Coord, PlayerColor], color: PlayerColor, iterations: int, constant = 0.5):
         self.root = BoardNode(root_board_dict, color)
         self.mycolor = color
-        self.exploration_constant = 0.5
+        self.exploration_constant = constant
+        self.iterations = iterations
+        self.run(self.iterations)
 
     def run(self, iterations: int) -> None:
         for _ in range(iterations):
@@ -30,7 +32,10 @@ class MCTS:
             new_board = place_tetromino(board_dict, move, self.mycolor)
             new_node = BoardNode(new_board, self.mycolor, node, move)
             node.children.append(new_node)
-        return max(node.children, key=lambda child: child.uct)
+        if node.children:
+            return max(node.children, key=lambda child: child.uct)
+        else:
+            return node
 
     def simulation(self, node: BoardNode) -> PlayerColor | None:
         # Play a random playout from the new node to the end of the game

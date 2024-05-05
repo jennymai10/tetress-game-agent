@@ -1,7 +1,7 @@
 from referee.game import PlayerColor, Coord, BOARD_N, Board
-from agent_mc.utils import render_board, string_to_board, place_tetromino, winner
-from agent_mc.mcts import MCTS
-from agent_mc.program import Agent
+from agent.utils import render_board, string_to_board, place_tetromino, winner
+from agent.mcts import MCTS
+from agent.program import Agent
 from agent_random.program import Agent_Random
 
 
@@ -27,14 +27,14 @@ def play_game(board: dict[Coord, PlayerColor], mycolor: PlayerColor) -> PlayerCo
         board_dict = place_tetromino(board_dict, turn, current_player.get_color())
         agent1.update(current_player.get_color(), turn)
         agent2.update(current_player.get_color(), turn)
+        print(current_player.get_color(), " turn:")
+        print(render_board(board_dict))
         turn_num = turn_num + 1
         if current_player == agent1:
             current_player = agent2
         else:
             current_player = agent1
-        print(current_player.get_color(), " turn:")
-        print(render_board(board_dict))
-    return (winner(board_dict, current_player))
+    return winner(board_dict, current_player)
 
 # target = None
 # state = {}
