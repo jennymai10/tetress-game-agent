@@ -21,6 +21,7 @@ for r, line in enumerate(input.strip().split("\n")):
 print(render_board(board))
 
 possible_actions = generate_possible_moves(board, PlayerColor.RED)
+print(len(possible_actions))
 for move in possible_actions:
     b = place_tetromino(board, move, PlayerColor.RED)
     print(render_board(b))
