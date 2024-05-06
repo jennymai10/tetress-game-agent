@@ -25,26 +25,3 @@ print(len(possible_actions))
 for move in possible_actions:
     b = place_tetromino(board, move, PlayerColor.BLUE)
     print(render_board(b))
-
-
-# current_player = PlayerColor.RED # start with red goes first
-# turn_num = 1
-# while turn_num <= 150:
-#     print("Turn of: ", current_player)
-#     possible_actions = generate_possible_moves(board, current_player)
-#     if len(possible_actions) == 0 and current_player == PlayerColor.RED:
-#         print("BLUE won")
-#         break
-#     elif len(possible_actions) == 0 and current_player == PlayerColor.BLUE:
-#         print("RED won")
-#         break
-#     action = random.choice(possible_actions)
-#     board = place_tetromino(board, action, current_player)
-#     turn_num = turn_num + 1
-#     if current_player == PlayerColor.RED:
-#         current_player = PlayerColor.BLUE
-#     else:
-#         current_player = PlayerColor.RED
-#     print(current_player)
-#     print(render_board(board, None, ansi=True))
-# # print(winner(board, current_player))

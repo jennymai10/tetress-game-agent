@@ -517,17 +517,9 @@ def heuristic_evaluation(board_dict: dict[Coord, PlayerColor], mycolor: PlayerCo
     Evaluate the quality of each possible action based on the current game state using heuristics.
     Higher values indicate more favorable actions.
     """
-    # Example heuristic: prioritize actions that prevent opponent from making advantageous moves
-    opponent_color = PlayerColor.RED if mycolor == PlayerColor.BLUE else PlayerColor.BLUE
-    # opponent_moves = generate_possible_moves(board_dict, opponent_color)
-    # opponent_advantage = len(opponent_moves)
-    count = 0.0
-    for cell in board_dict.values():
-        if cell == mycolor:
-            count += 1
-        elif cell != None:
-            count -= 0.5
+    oppo_color = PlayerColor.RED if mycolor == PlayerColor.BLUE else PlayerColor.BLUE
+    oppo_cell_count = len(get_starting_cells(board_dict, oppo_color))
+    my_cell_count = len(get_starting_cells(board_dict, mycolor))
 
-    # Combine heuristics (you can adjust weights and add more heuristics as needed)
-    evaluation = count * 5 - len(get_starting_cells(board_dict, opponent_color)) * 4 + len(get_starting_cells(board_dict, mycolor)) * 4
+    evaluation = (my_cell_count + 1) / (oppo_cell_count + 1)
     return evaluation

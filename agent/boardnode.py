@@ -11,6 +11,7 @@ class BoardNode:
         self.loss = 0
         self.draw = 0
         self.uct = heuristic_evaluation(board_dict, color)
+        self.depth = 0
         self.terminal = False
         self.children = [] # List of children nodes
         self.mycolor = color

@@ -38,7 +38,7 @@ class MCTS:
                 node.children.append(new_node)
             else:
                 score_dict[move] = heuristic_evaluation(new_board, self.mycolor)
-        # Sort scores and only create new nodes for the 10 highest ones
+        # Sort scores and only create new nodes for the 10 highest ones only
         if len(moves) >= 10:
             sorted_moves = sorted(score_dict, key=score_dict.get, reverse=True)[:10]
             for move in sorted_moves:
@@ -82,12 +82,12 @@ class MCTS:
             node.draw += 1
         else:
             node.loss += 1
-        
+        node.depth += 1
         # Check if the node is a leaf node (no children)
         if not node.children:
             node.uct = heuristic_evaluation(string_to_board(node.board_str), node.mycolor)
         elif node.parent is not None:
-            node.uct += (node.win / node.visit) + (self.exploration_constant * math.sqrt(2 * math.log(node.parent.visit) / node.visit))
+            node.uct = ((node.win / node.visit) + (self.exploration_constant * math.sqrt(2 * math.log(node.parent.visit) / node.visit)) + heuristic_evaluation(string_to_board(node.board_str), node.mycolor)) * 0.5
             self.backpropagation(node.parent, won)
         else:
-            node.uct += (node.win / node.visit)
+            node.uct = (node.win / node.visit)
