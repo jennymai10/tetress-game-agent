@@ -1,5 +1,5 @@
 from referee.game import PlayerColor, Action, PlaceAction, Coord
-from .utils import board_to_string, string_to_board, generate_possible_moves, place_tetromino, render_board
+from .utils_2 import board_to_string, string_to_board, generate_possible_moves, place_tetromino, render_board
 
 class BoardNode:
     def __init__(self, board_dict: dict[Coord, PlayerColor], color: PlayerColor, parent: 'BoardNode' = None, action: 'PlaceAction' = None) -> None:

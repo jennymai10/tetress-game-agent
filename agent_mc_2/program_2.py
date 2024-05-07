@@ -2,8 +2,8 @@
 # Project Part B: Game Playing Agent
 
 from referee.game import PlayerColor, Action, PlaceAction, Coord
-from .utils import render_board, string_to_board, place_tetromino, generate_possible_moves
-from .mcts import MCTS
+from .utils_2 import render_board, string_to_board, place_tetromino, generate_possible_moves
+from .mcts_2 import MCTS
 
 class Agent_MC_2:
     """
@@ -23,9 +23,9 @@ class Agent_MC_2:
                 self.board[Coord(r, c)] = None
         match color:
             case PlayerColor.RED:
-                print("Testing: I am playing as RED")
+                print("AGENT_MC_2: I am playing as RED")
             case PlayerColor.BLUE:
-                print("Testing: I am playing as BLUE")
+                print("AGENT_MC_2: I am playing as BLUE")
     
     def get_color(self) -> PlayerColor:
         return self.color
@@ -42,7 +42,7 @@ class Agent_MC_2:
         if sum(1 for color in self.board.values() if color == self.color) == 0:
             return PlaceAction(Coord(2,1), Coord(2,2), Coord(2,3), Coord(1,2))
         
-        mcts = MCTS(self.board, self.color, 2, 0.5)
+        mcts = MCTS(self.board, self.color, 1, 0.5)
 
         best_child = mcts.selection(mcts.root)
         action = best_child.action

@@ -1,81 +1,4 @@
 from referee.game import PlayerColor, Action, PlaceAction, Coord, BOARD_N
-from .disjointset import DisjointSet
-
-def count_holes(board: dict[Coord, PlayerColor]) -> int:
-    disjoint_set = DisjointSet()
-    parent = []
-    for r in range(11):
-        for c in range(11):
-            if board.get(Coord(r, c)) is None:
-                disjoint_set.make_set(Coord(r, c))
-                parent.append(Coord(r, c))
-    for coord in parent:
-        neighbors = get_valid_neighbors(coord, board)
-        for neighbor in neighbors:
-            disjoint_set.union(coord, neighbor)
-    
-    num_disjoint_sets = 0
-    set_sizes = {}
-    for coord in parent:
-        parent_coord = disjoint_set.find_set(coord)
-        if parent_coord in set_sizes:
-            set_sizes[parent_coord] += 1
-        else:
-            set_sizes[parent_coord] = 1
-    
-    for size in set_sizes.values():
-        if size >= 4:
-            num_disjoint_sets += 1
-    
-    return num_disjoint_sets
-
-def heuristic_evaluation(board_dict: dict[Coord, PlayerColor], mycolor: PlayerColor) -> float:
-    """
-    Evaluate the quality of each possible action based on the current game state using heuristics.
-    Higher values indicate more favorable actions.
-    """
-    oppo_color = PlayerColor.RED if mycolor == PlayerColor.BLUE else PlayerColor.BLUE
-    oppo_cell_count = len(get_starting_cells(board_dict, oppo_color))
-    my_cell_count = len(get_starting_cells(board_dict, mycolor))
-    holes_penalty = 0
-    if sum(1 for value in board_dict.values() if value is not None) > 80:
-        holes_count = count_holes(board_dict)
-        if holes_count % 2 == 0:
-            holes_penalty = -1
-        else:
-            holes_penalty = 1
-
-    evaluation = (my_cell_count + 1) / (oppo_cell_count + 1) + holes_penalty
-    return evaluation
-
-def board_to_string(board: dict[Coord, PlayerColor]) -> str:
-    """
-    Convert the board to a string state
-    """
-    state = ""
-    for r in range(BOARD_N):
-        for c in range(BOARD_N):
-            if board.get(Coord(r, c), None) == PlayerColor.RED:
-                state += "1"
-            elif board.get(Coord(r, c), None) == PlayerColor.BLUE:
-                state += "2"
-            else:
-                state += "0"
-    return state
-
-def string_to_board(state: str) -> dict[Coord, PlayerColor]:
-    """
-    Convert a string state to board
-    """
-    board = {}
-    for r in range(BOARD_N):
-        for c in range(BOARD_N):
-            coord = Coord(r, c)
-            if state[r * BOARD_N + c] == "1":
-                board[coord] = PlayerColor.RED
-            elif state[r * BOARD_N + c] == "2":
-                board[coord] = PlayerColor.BLUE
-    return board
 
 def apply_ansi(text: str, bold: bool = True, color: str | None = None):
     """
@@ -129,12 +52,42 @@ def render_board(board: dict[Coord, PlayerColor], move: PlaceAction = None, ansi
     
     return output
 
+def board_to_string(board: dict[Coord, PlayerColor]) -> str:
+    """
+    Convert the board to a string state
+    """
+    state = ""
+    for r in range(BOARD_N):
+        for c in range(BOARD_N):
+            if board.get(Coord(r, c), None) == PlayerColor.RED:
+                state += "1"
+            elif board.get(Coord(r, c), None) == PlayerColor.BLUE:
+                state += "2"
+            else:
+                state += "0"
+    return state
+
+def string_to_board(state: str) -> dict[Coord, PlayerColor]:
+    """
+    Convert a string state to board
+    """
+    board = {}
+    for r in range(BOARD_N):
+        for c in range(BOARD_N):
+            coord = Coord(r, c)
+            if state[r * BOARD_N + c] == "1":
+                board[coord] = PlayerColor.RED
+            elif state[r * BOARD_N + c] == "2":
+                board[coord] = PlayerColor.BLUE
+    return board
+
 def is_valid_cell(board: dict[Coord, PlayerColor], coord: Coord) -> bool:
     """
     Check if a cell is valid to place
     """
     # If coord is not empty to place
-    return board.get(coord) is None
+    cell_content = board.get(coord)
+    return cell_content is None
 
 def get_valid_neighbors(coord: Coord, board: dict[Coord, PlayerColor], board_size: int = 11) -> list[Coord]:
     """
@@ -146,6 +99,10 @@ def get_valid_neighbors(coord: Coord, board: dict[Coord, PlayerColor], board_siz
         new_r = (coord.r + dr) % board_size
         new_c = (coord.c + dc) % board_size
         new_coord = Coord(new_r, new_c)
+
+        # cell_value = board.get(new_coord)  # For debugging
+        # print(f"Checking {new_coord}: {cell_value}, valid: {is_valid_cell(board, new_coord, target)}")
+
         if is_valid_cell(board, new_coord):
             neighbors.append(new_coord)
     return neighbors
@@ -154,7 +111,11 @@ def get_starting_cells(board: dict[Coord, PlayerColor], mycolor: PlayerColor) ->
     """
     Get the starting cells of my color
     """    
-    return [cell for cell in board.keys() if board[cell] == mycolor]
+    starting = []
+    for cell in board:
+        if board.get(cell) == mycolor:
+            starting.append(cell)
+    return starting
 
 def get_all_tetromino_shapes():
     # Define all tetromino shapes in their fixed orientations
@@ -181,51 +142,33 @@ def get_all_tetromino_shapes():
     }
 
     all_shapes = [shape for shapes in tetrominoes.values() for shape in shapes]
-    return all_shapes
-
-
+    # weights = [0, 0, 3, 2, 2, 2, 2, 0.9, 0.9, 0.9, 0.9, 1, 1, 1, 1, 4, 4, 4, 4]
+    return all_shapes #, weights
         
 def is_valid_placement(positions: PlaceAction, board, mycolor: PlayerColor) -> bool:
-    adjacent = set()
+    adjacent = []
     for cell in [positions.c1, positions.c2, positions.c3, positions.c4]:
-        if board.get(cell) is not None:
+        if board.get(cell) == PlayerColor.RED or board.get(cell) == PlayerColor.BLUE:
             return False
         for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
             new_r = (cell.r + dr) % 11
             new_c = (cell.c + dc) % 11
             new_coord = Coord(new_r, new_c)
-            adjacent.add(new_coord)
-    return any(board.get(cell) == mycolor for cell in adjacent)
+            adjacent.append(new_coord)
+    for cell in adjacent:
+        if board.get(cell) == mycolor:
+            return True
+    return False
 
-def place_tetromino(board: dict[Coord, PlayerColor], action: PlaceAction, mycolor: PlayerColor) -> dict[Coord, PlayerColor]:
-    new_board = board.copy()
-    for pos in [action.c1, action.c2, action.c3, action.c4]:
-        new_board[pos] = mycolor
-    rows_to_clear = set()
-    cols_to_clear = set()
-    for row in range(11):
-        if all(new_board.get(Coord(row, col)) is not None for col in range(11)):
-            rows_to_clear.add(row)
-    for col in range(11):
-        if all(new_board.get(Coord(row, col)) is not None for row in range(11)):
-            cols_to_clear.add(col)
-    for row in rows_to_clear:
-        for col in range(11):
-            new_board[Coord(row, col)] = None
-    for col in cols_to_clear:
-        for row in range(11):
-            new_board[Coord(row, col)] = None
-    return new_board
-
-def winner(board: dict[Coord, PlayerColor], turn: PlayerColor) -> PlayerColor | None:
-    red_count = sum(1 for color in board.values() if color == PlayerColor.RED)
-    blue_count = sum(1 for color in board.values() if color == PlayerColor.BLUE)
-    if red_count > blue_count:
-        return PlayerColor.RED
-    elif red_count < blue_count:
-        return PlayerColor.BLUE
-    else:
-        return None
+def generate_possible_moves(board: dict[Coord, PlayerColor], color: PlayerColor) -> list[PlaceAction]:
+    my_cells = get_starting_cells(board, color)
+    my_neighbors = get_valid_neighbors_wrap(my_cells, board)
+    actions = []
+    for neighbor in my_neighbors:
+        for i in generate_pieces_for_position(board, neighbor):
+            if i not in actions:
+                actions.append(i)
+    return actions
 
 def get_valid_neighbors_wrap(coords: list[Coord], board: dict[Coord, PlayerColor], board_size: int = 11) -> list[Coord]:
     neighbors = []
@@ -238,17 +181,23 @@ def get_valid_neighbors_wrap(coords: list[Coord], board: dict[Coord, PlayerColor
             if board.get(new_coord) is None:
                 neighbors.append(new_coord)
     return neighbors
-    
-def generate_possible_moves(board: dict[Coord, PlayerColor], color: PlayerColor) -> list[PlaceAction]:
-    my_cells = get_starting_cells(board, color)
-    my_neighbors = get_valid_neighbors_wrap(my_cells, board)
-    actions = []
-    for neighbor in my_neighbors:
-        for i in generate_pieces_for_position(board, neighbor):
-            if i not in actions:
-                actions.append(i)
-    return actions
 
+def place_tetromino(board: dict[Coord, PlayerColor], action: PlaceAction, mycolor: PlayerColor) -> dict[Coord, PlayerColor]:
+    new_board = board.copy()
+    for pos in [action.c1, action.c2, action.c3, action.c4]:
+        new_board[pos] = mycolor
+    for row in range(11):
+        filled_line = all(board.get(Coord(row, col)) is not None for col in range(11))
+        if filled_line:
+            for col in range(11):
+                board[Coord(row, col)] = None
+
+    for col in range(11):
+        filled_line = all(board.get(Coord(row, col)) is not None for row in range(11))
+        if filled_line:
+            for row in range(11):
+                board[Coord(row, col)] = None
+    return new_board
 
 def generate_pieces_for_position(
         board: dict[Coord, PlayerColor],
@@ -269,7 +218,6 @@ def generate_pieces_for_position(
     pieces.extend(generate_S_pieces(board, cell))
     pieces.extend(generate_O_pieces(board, cell))
     return pieces
-
 
 def generate_I_pieces(
         board: dict[Coord, PlayerColor],

@@ -1,8 +1,8 @@
 import random
 import math
 from .boardnode import BoardNode
-from .utils import string_to_board, generate_possible_moves, place_tetromino, render_board, winner, heuristic_evaluation
-from referee.game import PlayerColor, Action, PlaceAction, Coord, Board
+from .utils import generate_possible_moves, place_tetromino, render_board, winner, heuristic_evaluation, string_to_board
+from referee.game import PlayerColor, Coord
 
 class MCTS:
     def __init__(self, root_board_dict: dict[Coord, PlayerColor], color: PlayerColor, iterations: int, constant = 0.5):
@@ -23,37 +23,25 @@ class MCTS:
         # self.root.print_tree()
     
     def selection(self, node: BoardNode) -> BoardNode:
-        rollout_values = [heuristic_evaluation(string_to_board(child.board_str), child.mycolor) for child in node.children]
-        return max(node.children, key=lambda child: child.uct + rollout_values[node.children.index(child)])
+        return max(node.children, key=lambda child: child.uct)
 
-    def expansion(self, node: BoardNode) -> BoardNode:
+    def expansion(self, node: BoardNode) -> None:
         # Create a new child node for each possible move
         board_dict = string_to_board(node.board_str)
         moves = generate_possible_moves(board_dict, self.mycolor)
-        score_dict = {}
         for move in moves:
             new_board = place_tetromino(board_dict, move, self.mycolor)
-            if len(moves) < 10:
-                new_node = BoardNode(new_board, self.mycolor, node, move)
-                node.children.append(new_node)
-            else:
-                score_dict[move] = heuristic_evaluation(new_board, self.mycolor)
-        # Sort scores and only create new nodes for the 10 highest ones only
-        if len(moves) >= 10:
-            sorted_moves = sorted(score_dict, key=score_dict.get, reverse=True)[:10]
-            for move in sorted_moves:
-                new_board = place_tetromino(board_dict, move, self.mycolor)
-                new_node = BoardNode(new_board, self.mycolor, node, move)
-                node.children.append(new_node)
-
-        if node.children:
-            return max(node.children, key=lambda child: child.uct)
+            new_node = BoardNode(new_board, self.mycolor, node, move)
+            node.children.append(new_node)
+        node.children.sort(key=lambda child: child.uct, reverse=True)
+        if self.iterations >= 10:
+            node.children = node.children[:10]
         else:
-            return node
+            node.children = node.children[:5]
 
     def simulation(self, node: BoardNode) -> PlayerColor | None:
         # Play a random playout from the new node to the end of the game
-        board_dict = string_to_board(node.board_str)
+        board_dict = node.board.copy()
         current_player = self.mycolor
         turn_num = 1
         while turn_num <= 150:
@@ -85,9 +73,9 @@ class MCTS:
         node.depth += 1
         # Check if the node is a leaf node (no children)
         if not node.children:
-            node.uct = heuristic_evaluation(string_to_board(node.board_str), node.mycolor)
+            node.uct = heuristic_evaluation(node.board, node.mycolor)
         elif node.parent is not None:
-            node.uct = ((node.win / node.visit) + (self.exploration_constant * math.sqrt(2 * math.log(node.parent.visit) / node.visit)) + heuristic_evaluation(string_to_board(node.board_str), node.mycolor)) * 0.5
+            node.uct = ((node.win / node.visit) + (self.exploration_constant * math.sqrt(2 * math.log(node.parent.visit) / node.visit)) + heuristic_evaluation(node.board, node.mycolor)) * 0.5
             self.backpropagation(node.parent, won)
         else:
             node.uct = (node.win / node.visit)
