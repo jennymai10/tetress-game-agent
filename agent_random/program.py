@@ -5,7 +5,7 @@ from referee.game import PlayerColor, Action, PlaceAction, Coord
 import random
 from .utils_rd import place_tetromino, generate_possible_moves, board_to_string, string_to_board, render_board
 
-class Agent_Random:
+class Agent:
     """
     This class is the "entry point" for your agent, providing an interface to
     respond to various Tetress game events.
