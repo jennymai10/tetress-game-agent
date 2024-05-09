@@ -1,8 +1,9 @@
 # COMP30024 Artificial Intelligence, Semester 1 2024
 # Project Part B: Game Playing Agent
 
+import random
 from referee.game import PlayerColor, Action, PlaceAction, Coord
-from .utils import render_board, place_tetromino
+from .utils import render_board, place_tetromino, generate_possible_moves
 from .mcts import MCTS
 
 class Agent:
@@ -41,11 +42,12 @@ class Agent:
             return PlaceAction(Coord(2,1), Coord(2,2), Coord(2,3), Coord(1,2))
         
         if cell_count < 60:
-            mcts = MCTS(self.board, self.color, 1, 0.1)
+            action = random.choice(generate_possible_moves(self.board, self.color))
+            return action
         elif cell_count < 80:
             mcts = MCTS(self.board, self.color, 10, 0.1)
         else:
-            mcts = MCTS(self.board, self.color, 20, 0.1)
+            mcts = MCTS(self.board, self.color, 25, 0.1)
         
         best_child = mcts.selection(mcts.root)
         action = best_child.action
@@ -57,3 +59,4 @@ class Agent:
         turn. You should use it to update the agent's internal game state. 
         """
         self.board = place_tetromino(self.board, action, color)
+        print(render_board(self.board))

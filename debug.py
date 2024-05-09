@@ -33,7 +33,7 @@ import cProfile
 #     print("WINNER is: ", c)
 
 def play_game(board: dict[Coord, PlayerColor], mycolor: PlayerColor) -> PlayerColor | None:
-    agent1 = Agent(PlayerColor.BLUE)
+    agent1 = Agent_Random(PlayerColor.BLUE)
     agent2 = Agent_Random(PlayerColor.RED)
 
     current_player = agent2
@@ -43,20 +43,14 @@ def play_game(board: dict[Coord, PlayerColor], mycolor: PlayerColor) -> PlayerCo
             board_dict[Coord(r, c)] = None
     turn_num = 1
     while turn_num <= 150:
-        try:
-            print("Turn: ", turn_num)
-            turn = current_player.action()
-        except ValueError:
-            if agent2.color == current_player.color:
-                print("YAYYYYY !!")
-            else:
-                print("Ughhhh.....")
-            break
+        print("Turn: ", turn_num)
+        turn = current_player.action()
+        print(turn)
         board_dict = place_tetromino(board_dict, turn, current_player.get_color())
-        agent1.update(current_player.get_color(), turn)
-        agent2.update(current_player.get_color(), turn)
         print(current_player.get_color(), " turn:")
         print(render_board(board_dict, turn))
+        agent1.update(current_player.get_color(), turn)
+        agent2.update(current_player.get_color(), turn)
         turn_num = turn_num + 1
         if current_player == agent1:
             current_player = agent2
@@ -65,5 +59,5 @@ def play_game(board: dict[Coord, PlayerColor], mycolor: PlayerColor) -> PlayerCo
     return winner(board_dict, current_player)
 
 if __name__ == '__main__':
-    cProfile.run('c = play_game(None, PlayerColor.RED)')
-    print("WINNER is: ", c)
+    c = play_game(None, PlayerColor.RED)
+    # print("WINNER is: ", c)

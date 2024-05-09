@@ -45,7 +45,7 @@ def heuristic_evaluation(board_dict: dict[Coord, PlayerColor], mycolor: PlayerCo
         else:
             holes_penalty = 1
 
-    evaluation = (my_cell_count + 1) / (oppo_cell_count + 1) + holes_penalty
+    evaluation = (my_cell_count + 0.001) / (oppo_cell_count + 0.001) + holes_penalty
     return evaluation
 
 def board_to_string(board: dict[Coord, PlayerColor]) -> str:
@@ -240,6 +240,7 @@ def get_valid_neighbors_wrap(coords: list[Coord], board: dict[Coord, PlayerColor
     return neighbors
     
 def generate_possible_moves(board: dict[Coord, PlayerColor], color: PlayerColor) -> list[PlaceAction]:
+    
     my_cells = get_starting_cells(board, color)
     my_neighbors = get_valid_neighbors_wrap(my_cells, board)
     actions = []

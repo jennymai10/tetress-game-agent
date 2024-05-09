@@ -6,7 +6,7 @@ from agent.mcts import MCTS
 
 target = None
 board = {}
-with open("test_csv/test-vis9.csv", "r") as file:
+with open("test_csv/test-vis1.csv", "r") as file:
     input = file.read()
 for r, line in enumerate(input.strip().split("\n")):
     for c, p in enumerate(line.split(",")):
@@ -20,5 +20,7 @@ for r, line in enumerate(input.strip().split("\n")):
             target = Coord(r, c)
 print(render_board(board))
 
-holes = count_holes(board)
-print(holes)
+mcts = MCTS(board, PlayerColor.BLUE, 15, 0.01)
+best_child = mcts.selection(mcts.root)
+print("Chosen move: ", best_child.uct, best_child.action)
+print(render_board(best_child.board, best_child.action))
