@@ -198,23 +198,20 @@ def is_valid_placement(positions: PlaceAction, board, mycolor: PlayerColor) -> b
     return any(board.get(cell) == mycolor for cell in adjacent)
 
 def place_tetromino(board: dict[Coord, PlayerColor], action: PlaceAction, mycolor: PlayerColor) -> dict[Coord, PlayerColor]:
-    new_board = board.copy()
+    new_board = board
     for pos in [action.c1, action.c2, action.c3, action.c4]:
         new_board[pos] = mycolor
-    rows_to_clear = set()
-    cols_to_clear = set()
     for row in range(11):
-        if all(new_board.get(Coord(row, col)) is not None for col in range(11)):
-            rows_to_clear.add(row)
+        filled_line = sum(1 for col in range(11) if board.get(Coord(row, col)) is not None) == 11
+        if filled_line:
+            for col in range(11):
+                board[Coord(row, col)] = None
+
     for col in range(11):
-        if all(new_board.get(Coord(row, col)) is not None for row in range(11)):
-            cols_to_clear.add(col)
-    for row in rows_to_clear:
-        for col in range(11):
-            new_board[Coord(row, col)] = None
-    for col in cols_to_clear:
-        for row in range(11):
-            new_board[Coord(row, col)] = None
+        filled_line = sum(1 for row in range(11) if board.get(Coord(row, col)) is not None) == 11
+        if filled_line:
+            for row in range(11):
+                board[Coord(row, col)] = None
     return new_board
 
 def winner(board: dict[Coord, PlayerColor], turn: PlayerColor) -> PlayerColor | None:

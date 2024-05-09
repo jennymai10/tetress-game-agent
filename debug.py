@@ -1,9 +1,9 @@
 from referee.game import PlayerColor, Coord, BOARD_N, Board
 from agent.utils import render_board, place_tetromino, winner
 from agent.mcts import MCTS
-from agent.program import Agent
-from agent_mc_2.program_2 import Agent_MC_2
-from agent_random import Agent_Random
+from agent.program import Agent as agent_mcts
+from agent_mc_2.program_2 import Agent as agent_mcts_basic
+from agent_random import Agent as agent_random
 import cProfile
 
 # target = None
@@ -33,8 +33,8 @@ import cProfile
 #     print("WINNER is: ", c)
 
 def play_game(board: dict[Coord, PlayerColor], mycolor: PlayerColor) -> PlayerColor | None:
-    agent1 = Agent_Random(PlayerColor.BLUE)
-    agent2 = Agent_Random(PlayerColor.RED)
+    agent1 = agent_mcts(PlayerColor.BLUE)
+    agent2 = agent_mcts_basic(PlayerColor.RED)
 
     current_player = agent2
     board_dict = {}

@@ -3,9 +3,9 @@
 
 from referee.game import PlayerColor, Action, PlaceAction, Coord
 import random
-from agent.utils import place_tetromino, generate_possible_moves, board_to_string, string_to_board, render_board
+from agent.utils import place_tetromino, generate_possible_moves
 
-class Agent_Random:
+class Agent:
     """
     This class is the "entry point" for your agent, providing an interface to
     respond to various Tetress game events.
@@ -46,4 +46,3 @@ class Agent_Random:
         turn. You should use it to update the agent's internal game state. 
         """
         self.board = place_tetromino(self.board, action, color)
-        print(render_board(self.board))

@@ -1,7 +1,7 @@
 import time
 import random
 from referee.game import PlayerColor, Coord, BOARD_N, Board
-from agent.utils import render_board, count_holes
+from agent.utils import render_board, count_holes, generate_possible_moves, place_tetromino
 from agent.mcts import MCTS
 
 target = None
@@ -20,7 +20,11 @@ for r, line in enumerate(input.strip().split("\n")):
             target = Coord(r, c)
 print(render_board(board))
 
-mcts = MCTS(board, PlayerColor.BLUE, 15, 0.01)
-best_child = mcts.selection(mcts.root)
-print("Chosen move: ", best_child.uct, best_child.action)
-print(render_board(best_child.board, best_child.action))
+# mcts = MCTS(board, PlayerColor.BLUE, 15, 0.01)
+# best_child = mcts.selection(mcts.root)
+# print("Chosen move: ", best_child.uct, best_child.action)
+# print(render_board(best_child.board, best_child.action))
+
+# action = random.choice(generate_possible_moves(board, PlayerColor.BLUE))
+# board = place_tetromino(board, action, PlayerColor.BLUE)
+# print(render_board(board))

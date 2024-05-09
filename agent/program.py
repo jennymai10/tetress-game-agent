@@ -42,12 +42,11 @@ class Agent:
             return PlaceAction(Coord(2,1), Coord(2,2), Coord(2,3), Coord(1,2))
         
         if cell_count < 60:
-            action = random.choice(generate_possible_moves(self.board, self.color))
-            return action
+            return random.choice(generate_possible_moves(self.board, self.color))
         elif cell_count < 80:
-            mcts = MCTS(self.board, self.color, 10, 0.1)
+            mcts = MCTS(self.board, self.color, 20, 0.1)
         else:
-            mcts = MCTS(self.board, self.color, 25, 0.1)
+            mcts = MCTS(self.board, self.color, 30, 0.1)
         
         best_child = mcts.selection(mcts.root)
         action = best_child.action
@@ -59,4 +58,3 @@ class Agent:
         turn. You should use it to update the agent's internal game state. 
         """
         self.board = place_tetromino(self.board, action, color)
-        print(render_board(self.board))
