@@ -1,0 +1,518 @@
+from referee.game import PlayerColor, Action, PlaceAction, Coord, BOARD_N
+
+def apply_ansi(text: str, bold: bool = True, color: str | None = None):
+    """
+    Wraps some text with ANSI control codes to apply terminal-based formatting.
+    Note: Not all terminals will be compatible!
+    """
+    bold_code = "\033[1m" if bold else ""
+    color_code = ""
+    if color == "R":
+        color_code = "\033[33m"
+    elif color == "B":
+        color_code = "\033[32m"
+    elif color == "r":
+        color_code = "\033[31m"
+    elif color == "b":
+        color_code = "\033[34m"
+    return f"{bold_code}{color_code}{text}\033[0m"
+
+def render_board(board: dict[Coord, PlayerColor], move: PlaceAction = None, ansi: bool = True) -> str:
+    """
+    Visualise the Tetress board via a multiline ASCII string, including
+    optional ANSI styling for terminals that support this.
+
+    If a target coordinate is provided, the token at that location will be
+    capitalised/highlighted.
+    """
+    output = ""
+    if board is None:
+        return("None")
+    for r in range(BOARD_N):
+        for c in range(BOARD_N):
+            if board.get(Coord(r, c), None):
+                color = board[Coord(r, c)]
+                if move and Coord(r, c) in move.coords and color == PlayerColor.RED:
+                    color = "R"
+                elif move and Coord(r, c) in move.coords and color == PlayerColor.BLUE:
+                    color = "B"
+                elif color == PlayerColor.RED:
+                    color = "r"
+                else:
+                    color = "b"
+                text = f"{color}"
+                if ansi and (color == "R" or color == "B"):
+                    output += apply_ansi(text, color=color, bold=True)
+                else:
+                    output += apply_ansi(text, color=color, bold=False)
+            else:
+                output += "."
+            output += " "
+        output += "\n"
+    
+    return output
+
+def board_to_string(board: dict[Coord, PlayerColor]) -> str:
+    """
+    Convert the board to a string state
+    """
+    state = ""
+    for r in range(BOARD_N):
+        for c in range(BOARD_N):
+            if board.get(Coord(r, c), None) == PlayerColor.RED:
+                state += "1"
+            elif board.get(Coord(r, c), None) == PlayerColor.BLUE:
+                state += "2"
+            else:
+                state += "0"
+    return state
+
+def string_to_board(state: str) -> dict[Coord, PlayerColor]:
+    """
+    Convert a string state to board
+    """
+    board = {}
+    for r in range(BOARD_N):
+        for c in range(BOARD_N):
+            coord = Coord(r, c)
+            if state[r * BOARD_N + c] == "1":
+                board[coord] = PlayerColor.RED
+            elif state[r * BOARD_N + c] == "2":
+                board[coord] = PlayerColor.BLUE
+    return board
+
+def is_valid_cell(board: dict[Coord, PlayerColor], coord: Coord) -> bool:
+    """
+    Check if a cell is valid to place
+    """
+    # If coord is not empty to place
+    cell_content = board.get(coord)
+    return cell_content is None
+
+def get_valid_neighbors(coord: Coord, board: dict[Coord, PlayerColor], board_size: int = 11) -> list[Coord]:
+    """
+    Get the neighbors of a given coordinate on a toroidal board.
+    """
+    neighbors = []
+    for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+        # Adjust row and column values for toroidal wrap-around
+        new_r = (coord.r + dr) % board_size
+        new_c = (coord.c + dc) % board_size
+        new_coord = Coord(new_r, new_c)
+
+        # cell_value = board.get(new_coord)  # For debugging
+        # print(f"Checking {new_coord}: {cell_value}, valid: {is_valid_cell(board, new_coord, target)}")
+
+        if is_valid_cell(board, new_coord):
+            neighbors.append(new_coord)
+    return neighbors
+
+def get_starting_cells(board: dict[Coord, PlayerColor], mycolor: PlayerColor) -> list[Coord]:
+    """
+    Get the starting cells of my color
+    """    
+    starting = []
+    for cell in board:
+        if board.get(cell) == mycolor:
+            starting.append(cell)
+    return starting
+
+def get_all_tetromino_shapes():
+    # Define all tetromino shapes in their fixed orientations
+    tetrominoes = {
+        'I': [ [(0, 0), (1, 0), (2, 0), (3, 0)],
+               [(0, 0), (0, 1), (0, 2), (0, 3)] ],
+        'O': [ [(0, 0), (0, 1), (1, 0), (1, 1)] ],
+        'T': [ [(0, 0), (1, 0), (2, 0), (1, 1)],
+               [(0, 1), (1, 0), (1, 1), (1, 2)],
+               [(1, 0), (0, 1), (1, 1), (2, 1)],
+               [(1, 0), (0, 1), (1, 1), (1, 2)] ],
+        'J': [ [(0, 0), (1, 0), (2, 0), (2, 1)],
+               [(0, 0), (0, 1), (1, 1), (2, 1)],
+               [(0, 0), (0, 1), (1, 0), (2, 0)],
+               [(0, 0), (1, 0), (0, 1), (0, 2)] ],
+        'L': [ [(0, 1), (1, 1), (2, 0), (2, 1)],
+               [(0, 0), (1, 0), (2, 0), (0, 1)],
+               [(0, 0), (0, 1), (1, 0), (2, 0)],
+               [(2, 0), (0, 1), (1, 1), (2, 1)] ],
+        'S': [ [(0, 1), (1, 0), (1, 1), (2, 0)],
+               [(0, 0), (0, 1), (1, 1), (1, 2)] ],
+        'Z': [ [(0, 0), (1, 0), (1, 1), (2, 1)],
+               [(1, 0), (0, 1), (1, 1), (0, 2)] ]
+    }
+
+    all_shapes = [shape for shapes in tetrominoes.values() for shape in shapes]
+    # weights = [0, 0, 3, 2, 2, 2, 2, 0.9, 0.9, 0.9, 0.9, 1, 1, 1, 1, 4, 4, 4, 4]
+    return all_shapes #, weights
+        
+def is_valid_placement(positions: PlaceAction, board, mycolor: PlayerColor) -> bool:
+    adjacent = []
+    for cell in [positions.c1, positions.c2, positions.c3, positions.c4]:
+        if board.get(cell) == PlayerColor.RED or board.get(cell) == PlayerColor.BLUE:
+            return False
+        for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            new_r = (cell.r + dr) % 11
+            new_c = (cell.c + dc) % 11
+            new_coord = Coord(new_r, new_c)
+            adjacent.append(new_coord)
+    for cell in adjacent:
+        if board.get(cell) == mycolor:
+            return True
+    return False
+
+def generate_possible_moves(board: dict[Coord, PlayerColor], color: PlayerColor) -> list[PlaceAction]:
+    my_cells = get_starting_cells(board, color)
+    my_neighbors = get_valid_neighbors_wrap(my_cells, board)
+    actions = []
+    for neighbor in my_neighbors:
+        for i in generate_pieces_for_position(board, neighbor):
+            if i not in actions:
+                actions.append(i)
+    return actions
+
+def get_valid_neighbors_wrap(coords: list[Coord], board: dict[Coord, PlayerColor], board_size: int = 11) -> list[Coord]:
+    neighbors = []
+    for coord in coords:
+        for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            # Adjust row and column values for toroidal wrap-around
+            new_r = (coord.r + dr) % board_size
+            new_c = (coord.c + dc) % board_size
+            new_coord = Coord(new_r, new_c)
+            if board.get(new_coord) is None:
+                neighbors.append(new_coord)
+    return neighbors
+
+def place_tetromino(board: dict[Coord, PlayerColor], action: PlaceAction, mycolor: PlayerColor) -> dict[Coord, PlayerColor]:
+    new_board = board.copy()
+    for pos in [action.c1, action.c2, action.c3, action.c4]:
+        new_board[pos] = mycolor
+    for row in range(11):
+        filled_line = all(board.get(Coord(row, col)) is not None for col in range(11))
+        if filled_line:
+            for col in range(11):
+                board[Coord(row, col)] = None
+
+    for col in range(11):
+        filled_line = all(board.get(Coord(row, col)) is not None for row in range(11))
+        if filled_line:
+            for row in range(11):
+                board[Coord(row, col)] = None
+    return new_board
+
+def generate_pieces_for_position(
+        board: dict[Coord, PlayerColor],
+        cell: Coord
+) -> list[PlaceAction]:
+    """
+    Given a cell coordinate and a board state, return all legal piece (tetromino) arrangements for that 
+    cell in a list.
+    Each piece will have a maximum of 4 arrangements, since there is a possibility that all 4 cells of
+    the piece itself can be placed on the given cell.
+    """
+    pieces = []
+    pieces.extend(generate_I_pieces(board, cell))
+    pieces.extend(generate_L_pieces(board, cell))
+    pieces.extend(generate_J_pieces(board, cell))
+    pieces.extend(generate_T_pieces(board, cell))
+    pieces.extend(generate_Z_pieces(board, cell))
+    pieces.extend(generate_S_pieces(board, cell))
+    pieces.extend(generate_O_pieces(board, cell))
+    return pieces
+
+def generate_I_pieces(
+        board: dict[Coord, PlayerColor],
+        cell: Coord
+) -> list[PlaceAction]:
+    """
+    Given a cell coordinate and a board state, return all legal I piece (tetromino) arrangements for that 
+    cell in a list.
+    Each piece will have a maximum of 4 arrangements, since there is a possibility that all 4 cells of
+    the piece itself can be placed on the given cell.
+    """
+    I_pieces = []
+
+    # Horizontal I piece
+    if (piece_is_legal(board, PlaceAction(cell, cell.right(), cell.right(2), cell.right(3)))):
+        I_pieces.append(PlaceAction(cell, cell.right(), cell.right(2), cell.right(3)))
+    if (piece_is_legal(board, PlaceAction(cell.left(), cell, cell.right(), cell.right(2)))):
+        I_pieces.append(PlaceAction(cell.left(), cell, cell.right(), cell.right(2)))
+    if (piece_is_legal(board, PlaceAction(cell.left(2), cell.left(), cell, cell.right()))):
+        I_pieces.append(PlaceAction(cell.left(2), cell.left(), cell, cell.right()))
+    if (piece_is_legal(board, PlaceAction(cell.left(3), cell.left(2), cell.left(), cell))):
+        I_pieces.append(PlaceAction(cell.left(3), cell.left(2), cell.left(), cell))
+    # Vertical I piece
+    if (piece_is_legal(board, PlaceAction(cell, cell.down(), cell.down(2), cell.down(3)))):
+        I_pieces.append(PlaceAction(cell, cell.down(), cell.down(2), cell.down(3)))
+    if (piece_is_legal(board, PlaceAction(cell.up(), cell, cell.down(), cell.down(2)))):
+        I_pieces.append(PlaceAction(cell.up(), cell, cell.down(), cell.down(2)))
+    if (piece_is_legal(board, PlaceAction(cell.up(2), cell.up(), cell, cell.down()))):
+        I_pieces.append(PlaceAction(cell.up(2), cell.up(), cell, cell.down()))
+    if (piece_is_legal(board, PlaceAction(cell.up(3), cell.up(2), cell.up(), cell))):
+        I_pieces.append(PlaceAction(cell.up(3), cell.up(2), cell.up(), cell))
+
+    return I_pieces
+
+def generate_L_pieces(
+        board: dict[Coord, PlayerColor],
+        cell: Coord
+) -> list[PlaceAction]:
+    """
+    Given a cell coordinate and a board state, return all legal L piece (tetromino) arrangements for that 
+    cell in a list.
+    Each piece will have an maximum of 4 arrangements, since there is a possibility that all 4 cells of
+    the piece itself can be placed on the given cell.
+    """
+    L_pieces = []
+
+    # L piece rotated 0 degrees to the right
+    if piece_is_legal(board, PlaceAction(cell, cell.down(), cell.down(2), cell.down(2).right())):
+        L_pieces.append(PlaceAction(cell, cell.down(), cell.down(2), cell.down(2).right()))
+    if piece_is_legal(board, PlaceAction(cell.up(), cell, cell.down(), cell.down().right())):
+        L_pieces.append(PlaceAction(cell.up(), cell, cell.down(), cell.down().right()))
+    if piece_is_legal(board, PlaceAction(cell.up(2), cell.up(), cell, cell.right())):
+        L_pieces.append(PlaceAction(cell.up(2), cell.up(), cell, cell.right()))
+    if piece_is_legal(board, PlaceAction(cell.left().up(2), cell.left().up(), cell.left(), cell)):
+        L_pieces.append(PlaceAction(cell.left().up(2), cell.left().up(), cell.left(), cell))
+    # L piece rotated 90 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.left(), cell.left(2), cell.left(2).down()))):
+        L_pieces.append(PlaceAction(cell, cell.left(), cell.left(2), cell.left(2).down()))
+    if (piece_is_legal(board, PlaceAction(cell.right(), cell, cell.left(), cell.left().down()))):
+        L_pieces.append(PlaceAction(cell.right(), cell, cell.left(), cell.left().down()))
+    if (piece_is_legal(board, PlaceAction(cell.right(2), cell.right(), cell, cell.down()))):
+        L_pieces.append(PlaceAction(cell.right(2), cell.right(), cell, cell.down()))
+    if (piece_is_legal(board, PlaceAction(cell.up().right(2), cell.up().right(), cell.up(), cell))):
+        L_pieces.append(PlaceAction(cell.up().right(2), cell.up().right(), cell.up(), cell))
+    # L piece rotated 180 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.up(), cell.up(2), cell.up(2).left()))):
+        L_pieces.append(PlaceAction(cell, cell.up(), cell.up(2), cell.up(2).left()))
+    if (piece_is_legal(board, PlaceAction(cell.down(), cell, cell.up(), cell.up().left()))):
+        L_pieces.append(PlaceAction(cell.down(), cell, cell.up(), cell.up().left()))
+    if (piece_is_legal(board, PlaceAction(cell.down(2), cell.down(), cell, cell.left()))):
+        L_pieces.append(PlaceAction(cell.down(2), cell.down(), cell, cell.left()))
+    if (piece_is_legal(board, PlaceAction(cell.right().down(2), cell.right().down(), cell.right(), cell))):
+        L_pieces.append(PlaceAction(cell.right().down(2), cell.right().down(), cell.right(), cell))
+    # L piece rotated 270 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.right(), cell.right(2), cell.right(2).up()))):
+        L_pieces.append(PlaceAction(cell, cell.right(), cell.right(2), cell.right(2).up()))
+    if (piece_is_legal(board, PlaceAction(cell.left(), cell, cell.right(), cell.right().up()))):
+        L_pieces.append(PlaceAction(cell.left(), cell, cell.right(), cell.right().up()))
+    if (piece_is_legal(board, PlaceAction(cell.left(2), cell.left(), cell, cell.up()))):
+        L_pieces.append(PlaceAction(cell.left(2), cell.left(), cell, cell.up()))
+    if (piece_is_legal(board, PlaceAction(cell.down().left(2), cell.down().left(), cell.down(), cell))):
+        L_pieces.append(PlaceAction(cell.down().left(2), cell.down().left(), cell.down(), cell))
+    return L_pieces
+
+def generate_J_pieces(
+        board: dict[Coord, PlayerColor],
+        cell: Coord
+) -> list[PlaceAction]:
+    """
+    Given a cell coordinate and a board state, return all legal J piece (tetromino) arrangements for that 
+    cell in a list.
+    Each piece will have an maximum of 4 arrangements, since there is a possibility that all 4 cells of
+    the piece itself can be placed on the given cell.
+    """
+    J_pieces = []
+
+    # J piece rotated 0 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.down(), cell.down(2), cell.down(2).left()))):
+        J_pieces.append(PlaceAction(cell, cell.down(), cell.down(2), cell.down(2).left()))
+    if (piece_is_legal(board, PlaceAction(cell.up(), cell, cell.down(), cell.down().left()))):
+        J_pieces.append(PlaceAction(cell.up(), cell, cell.down(), cell.down().left()))
+    if (piece_is_legal(board, PlaceAction(cell.up(2), cell.up(), cell, cell.left()))):
+        J_pieces.append(PlaceAction(cell.up(2), cell.up(), cell, cell.left()))
+    if (piece_is_legal(board, PlaceAction(cell.right().up(2), cell.right().up(), cell.right(), cell))):
+        J_pieces.append(PlaceAction(cell.right().up(2), cell.right().up(), cell.right(), cell))
+    # J piece rotated 90 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.left(), cell.left(2), cell.left(2).up()))):
+        J_pieces.append(PlaceAction(cell, cell.left(), cell.left(2), cell.left(2).up()))
+    if (piece_is_legal(board, PlaceAction(cell.right(), cell, cell.left(), cell.left().up()))):
+        J_pieces.append(PlaceAction(cell.right(), cell, cell.left(), cell.left().up()))
+    if (piece_is_legal(board, PlaceAction(cell.right(2), cell.right(), cell, cell.up()))):
+        J_pieces.append(PlaceAction(cell.right(2), cell.right(), cell, cell.up()))
+    if (piece_is_legal(board, PlaceAction(cell.down().right(2), cell.down().right(), cell.down(), cell))):
+        J_pieces.append(PlaceAction(cell.down().right(2), cell.down().right(), cell.down(), cell))
+    # J piece rotated 180 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.up(), cell.up(2), cell.up(2).right()))):
+        J_pieces.append(PlaceAction(cell, cell.up(), cell.up(2), cell.up(2).right()))
+    if (piece_is_legal(board, PlaceAction(cell.down(), cell, cell.up(), cell.up().right()))):
+        J_pieces.append(PlaceAction(cell.down(), cell, cell.up(), cell.up().right()))
+    if (piece_is_legal(board, PlaceAction(cell.down(2), cell.down(), cell, cell.right()))):
+        J_pieces.append(PlaceAction(cell.down(2), cell.down(), cell, cell.right()))
+    if (piece_is_legal(board, PlaceAction(cell.left().down(2), cell.left().down(), cell.left(), cell))):
+        J_pieces.append(PlaceAction(cell.left().down(2), cell.left().down(), cell.left(), cell))
+    # J piece rotated 270 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.right(), cell.right(2), cell.right(2).down()))):
+        J_pieces.append(PlaceAction(cell, cell.right(), cell.right(2), cell.right(2).down()))
+    if (piece_is_legal(board, PlaceAction(cell.left(), cell, cell.right(), cell.right().down()))):
+        J_pieces.append(PlaceAction(cell.left(), cell, cell.right(), cell.right().down()))
+    if (piece_is_legal(board, PlaceAction(cell.left(2), cell.left(), cell, cell.down()))):
+        J_pieces.append(PlaceAction(cell.left(2), cell.left(), cell, cell.down()))
+    if (piece_is_legal(board, PlaceAction(cell.up().left(2), cell.up().left(), cell.up(), cell))):
+        J_pieces.append(PlaceAction(cell.up().left(2), cell.up().left(), cell.up(), cell))
+
+    return J_pieces
+
+
+def generate_T_pieces(
+        board: dict[Coord, PlayerColor],
+        cell: Coord
+) -> list[PlaceAction]:
+    """
+    Given a cell coordinate and a board state, return all legal T piece (tetromino) arrangements for that 
+    cell in a list.
+    Each piece will have an maximum of 4 arrangements, since there is a possibility that all 4 cells of
+    the piece itself can be placed on the given cell.
+    """
+    T_pieces = []
+
+    # T piece rotated 0 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.right(), cell.right().down(), cell.right(2)))):
+        T_pieces.append(PlaceAction(cell, cell.right(), cell.right().down(), cell.right(2)))
+    if (piece_is_legal(board, PlaceAction(cell.left(), cell, cell.down(), cell.right()))):
+        T_pieces.append(PlaceAction(cell.left(), cell, cell.down(), cell.right()))
+    if (piece_is_legal(board, PlaceAction(cell.left().up(), cell.up(), cell, cell.right().up()))):
+        T_pieces.append(PlaceAction(cell.left().up(), cell.up(), cell, cell.right().up()))
+    if (piece_is_legal(board, PlaceAction(cell.left(2), cell.left(), cell.down().left(), cell))):
+        T_pieces.append(PlaceAction(cell.left(2), cell.left(), cell.down().left(), cell))
+    # T piece rotated 90 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.down(), cell.down().left(), cell.down(2)))):
+        T_pieces.append(PlaceAction(cell, cell.down(), cell.down().left(), cell.down(2)))
+    if (piece_is_legal(board, PlaceAction(cell.up(), cell, cell.left(), cell.down()))):
+        T_pieces.append(PlaceAction(cell.up(), cell, cell.left(), cell.down()))
+    if (piece_is_legal(board, PlaceAction(cell.up().right(), cell.right(), cell, cell.down().right()))):
+        T_pieces.append(PlaceAction(cell.up().right(), cell.right(), cell, cell.down().right()))
+    if (piece_is_legal(board, PlaceAction(cell.up(2), cell.up(), cell.left().up(), cell))):
+        T_pieces.append(PlaceAction(cell.up(2), cell.up(), cell.left().up(), cell))
+    # T piece rotated 180 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.left(), cell.left().up(), cell.left(2)))):
+        T_pieces.append(PlaceAction(cell, cell.left(), cell.left().up(), cell.left(2)))
+    if (piece_is_legal(board, PlaceAction(cell.right(), cell, cell.up(), cell.left()))):
+        T_pieces.append(PlaceAction(cell.right(), cell, cell.up(), cell.left()))
+    if (piece_is_legal(board, PlaceAction(cell.right().down(), cell.down(), cell, cell.left().down()))):
+        T_pieces.append(PlaceAction(cell.right().down(), cell.down(), cell, cell.left().down()))
+    if (piece_is_legal(board, PlaceAction(cell.right(2), cell.right(), cell.up().right(), cell))):
+        T_pieces.append(PlaceAction(cell.right(2), cell.right(), cell.up().right(), cell))
+    # T piece rotated 270 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.up(), cell.up().right(), cell.up(2)))):
+        T_pieces.append(PlaceAction(cell, cell.up(), cell.up().right(), cell.up(2)))
+    if (piece_is_legal(board, PlaceAction(cell.down(), cell, cell.right(), cell.up()))):
+        T_pieces.append(PlaceAction(cell.down(), cell, cell.right(), cell.up()))
+    if (piece_is_legal(board, PlaceAction(cell.down().left(), cell.left(), cell, cell.up().left()))):
+        T_pieces.append(PlaceAction(cell.down().left(), cell.left(), cell, cell.up().left()))
+    if (piece_is_legal(board, PlaceAction(cell.down(2), cell.down(), cell.right().down(), cell))):
+        T_pieces.append(PlaceAction(cell.down(2), cell.down(), cell.right().down(), cell))
+
+    return T_pieces
+
+
+def generate_Z_pieces(
+        board: dict[Coord, PlayerColor],
+        cell: Coord
+) -> list[PlaceAction]:
+    """
+    Given a cell coordinate and a board state, return all legal Z piece (tetromino) arrangements for that 
+    cell in a list.
+    Each piece will have an maximum of 4 arrangements, since there is a possibility that all 4 cells of
+    the piece itself can be placed on the given cell.
+    """
+    Z_pieces = []
+
+    # Z piece rotated 0/180 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.right(), cell.right().down(), cell.right(2).down()))):
+        Z_pieces.append(PlaceAction(cell, cell.right(), cell.right().down(), cell.right(2).down()))
+    if (piece_is_legal(board, PlaceAction(cell.left(), cell, cell.down(), cell.right().down()))):
+        Z_pieces.append(PlaceAction(cell.left(), cell, cell.down(), cell.right().down()))
+    if (piece_is_legal(board, PlaceAction(cell.left().up(), cell.up(), cell, cell.right()))):
+        Z_pieces.append(PlaceAction(cell.left().up(), cell.up(), cell, cell.right()))
+    if (piece_is_legal(board, PlaceAction(cell.left(2).up(), cell.left().up(), cell.left(), cell))):
+        Z_pieces.append(PlaceAction(cell.left(2).up(), cell.left().up(), cell.left(), cell))
+    # Z piece rotated 90/270 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.down(), cell.down().left(), cell.down(2).left()))):
+        Z_pieces.append(PlaceAction(cell, cell.down(), cell.down().left(), cell.down(2).left()))
+    if (piece_is_legal(board, PlaceAction(cell.up(), cell, cell.left(), cell.down().left()))):
+        Z_pieces.append(PlaceAction(cell.up(), cell, cell.left(), cell.down().left()))
+    if (piece_is_legal(board, PlaceAction(cell.up().right(), cell.right(), cell, cell.down()))):
+        Z_pieces.append(PlaceAction(cell.up().right(), cell.right(), cell, cell.down()))
+    if (piece_is_legal(board, PlaceAction(cell.up(2).right(), cell.up().right(), cell.up(), cell))):
+        Z_pieces.append(PlaceAction(cell.up(2).right(), cell.up().right(), cell.up(), cell))
+
+    return Z_pieces
+
+
+def generate_S_pieces(
+        board: dict[Coord, PlayerColor],
+        cell: Coord
+) -> list[PlaceAction]:
+    """
+    Given a cell coordinate and a board state, return all legal S piece (tetromino) arrangements for that 
+    cell in a list.
+    Each piece will have an maximum of 4 arrangements, since there is a possibility that all 4 cells of
+    the piece itself can be placed on the given cell.
+    """
+    S_pieces = []
+
+    # S piece rotated 0/180 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.right(), cell.right().up(), cell.right(2).up()))):
+        S_pieces.append(PlaceAction(cell, cell.right(), cell.right().up(), cell.right(2).up()))
+    if (piece_is_legal(board, PlaceAction(cell.left(), cell, cell.up(), cell.right().up()))):
+        S_pieces.append(PlaceAction(cell.left(), cell, cell.up(), cell.right().up()))
+    if (piece_is_legal(board, PlaceAction(cell.left().down(), cell.down(), cell, cell.right()))):
+        S_pieces.append(PlaceAction(cell.left().down(), cell.down(), cell, cell.right()))
+    if (piece_is_legal(board, PlaceAction(cell.left(2).down(), cell.left().down(), cell.left(), cell))):
+        S_pieces.append(PlaceAction(cell.left(2).down(), cell.left().down(), cell.left(), cell))
+    # S piece rotated 90/270 degrees to the right
+    if (piece_is_legal(board, PlaceAction(cell, cell.down(), cell.down().right(), cell.down(2).right()))):
+        S_pieces.append(PlaceAction(cell, cell.down(), cell.down().right(), cell.down(2).right()))
+    if (piece_is_legal(board, PlaceAction(cell.up(), cell, cell.right(), cell.down().right()))):
+        S_pieces.append(PlaceAction(cell.up(), cell, cell.right(), cell.down().right()))
+    if (piece_is_legal(board, PlaceAction(cell.up().left(), cell.left(), cell, cell.down()))):
+        S_pieces.append(PlaceAction(cell.up().left(), cell.left(), cell, cell.down()))
+    if (piece_is_legal(board, PlaceAction(cell.up(2).left(), cell.up().left(), cell.up(), cell))):
+        S_pieces.append(PlaceAction(cell.up(2).left(), cell.up().left(), cell.up(), cell))
+
+    return S_pieces
+
+
+def generate_O_pieces(
+        board: dict[Coord, PlayerColor],
+        cell: Coord
+) -> list[PlaceAction]:
+    """
+    Given a cell coordinate and a board state, return all legal O piece (tetromino) arrangements for that 
+    cell in a list.
+    Each piece will have an maximum of 4 arrangements, since there is a possibility that all 4 cells of
+    the piece itself can be placed on the given cell.
+    """
+    O_pieces = []
+
+    if (piece_is_legal(board, PlaceAction(cell, cell.right(), cell.down(), cell.right().down()))):
+        O_pieces.append(PlaceAction(cell, cell.right(), cell.down(), cell.right().down()))
+    if (piece_is_legal(board, PlaceAction(cell, cell.left(), cell.down(), cell.left().down()))):
+        O_pieces.append(PlaceAction(cell, cell.left(), cell.down(), cell.left().down()))
+    if (piece_is_legal(board, PlaceAction(cell, cell.right(), cell.up(), cell.right().up()))):
+        O_pieces.append(PlaceAction(cell, cell.right(), cell.up(), cell.right().up()))
+    if (piece_is_legal(board, PlaceAction(cell, cell.left(), cell.up(), cell.left().up()))):
+        O_pieces.append(PlaceAction(cell, cell.left(), cell.up(), cell.left().up()))
+
+    return O_pieces
+
+
+def piece_is_legal(
+        board: dict[Coord, PlayerColor],
+        piece: PlaceAction
+) -> bool:
+    """
+    Given a PlaceAction with 4 coordinates and a board state, return true if none of the 4 coordinates already 
+    exist in the board state dict, false otherwise. Essentially checking if the PlaceAction is a legal move.
+    """
+    if piece.c1 in board:
+        return False
+    if piece.c2 in board:
+        return False
+    if piece.c3 in board:
+        return False
+    if piece.c4 in board:
+        return False
+
+    return True

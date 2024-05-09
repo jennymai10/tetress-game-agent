@@ -1,14 +1,16 @@
 import random
 import math
-from agent_mc.boardnode import BoardNode
-from agent_mc.utils import string_to_board, generate_possible_moves, place_tetromino, render_board, game_over, winner
+from .boardnode_2 import BoardNode
+from .utils_2 import string_to_board, generate_possible_moves, place_tetromino, render_board, winner
 from referee.game import PlayerColor, Action, PlaceAction, Coord, Board
 
 class MCTS:
-    def __init__(self, root_board_dict: dict[Coord, PlayerColor], color: PlayerColor):
+    def __init__(self, root_board_dict: dict[Coord, PlayerColor], color: PlayerColor, iterations: int, constant = 0.5):
         self.root = BoardNode(root_board_dict, color)
         self.mycolor = color
-        self.exploration_constant = 0.5
+        self.exploration_constant = constant
+        self.iterations = iterations
+        self.run(self.iterations)
 
     def run(self, iterations: int) -> None:
         for _ in range(iterations):
@@ -18,7 +20,7 @@ class MCTS:
             self.expansion(node)
             playout = self.simulation(node)
             self.backpropagation(node, playout)
-        self.root.print_tree()
+        # self.root.print_tree()
 
     def selection(self, node: BoardNode) -> BoardNode:
         return max(node.children, key=lambda child: child.uct)
@@ -26,12 +28,14 @@ class MCTS:
     def expansion(self, node: BoardNode) -> BoardNode:
         # Create a new child node for each possible move
         board_dict = string_to_board(node.board_str)
-        print(render_board(board_dict, None, True))
         for move in generate_possible_moves(board_dict, self.mycolor):
             new_board = place_tetromino(board_dict, move, self.mycolor)
             new_node = BoardNode(new_board, self.mycolor, node, move)
             node.children.append(new_node)
-        return random.choice(node.children)
+        if node.children:
+            return max(node.children, key=lambda child: child.uct)
+        else:
+            return node
 
     def simulation(self, node: BoardNode) -> PlayerColor | None:
         # Play a random playout from the new node to the end of the game
@@ -40,7 +44,7 @@ class MCTS:
         turn_num = 1
         while turn_num <= 150:
             possible_actions = generate_possible_moves(board_dict, current_player)
-            if len(possible_actions) == 0 and current_player == PlayerColor.RED:
+            if len(possible_actions) == 0  and current_player == PlayerColor.RED:
                 # print("BLUE won")
                 return PlayerColor.BLUE
             elif len(possible_actions) == 0 and current_player == PlayerColor.BLUE:
@@ -65,7 +69,10 @@ class MCTS:
         else:
             node.loss += 1
         
-        if node.parent is not None:
+        # Check if the node is a leaf node (no children)
+        if not node.children:
+            node.uct = float('inf')  # Set UCT to infinity for leaf nodes
+        elif node.parent is not None:
             node.uct = (node.win / node.visit) + (self.exploration_constant * math.sqrt(2 * math.log(node.parent.visit) / node.visit))
             self.backpropagation(node.parent, won)
         else:

@@ -2,10 +2,10 @@
 # Project Part B: Game Playing Agent
 
 from referee.game import PlayerColor, Action, PlaceAction, Coord
-import random
-from .utils_rd import place_tetromino, generate_possible_moves, board_to_string, string_to_board, render_board
+from .utils_2 import render_board, string_to_board, place_tetromino, generate_possible_moves
+from .mcts_2 import MCTS
 
-class Agent:
+class Agent_MC_2:
     """
     This class is the "entry point" for your agent, providing an interface to
     respond to various Tetress game events.
@@ -18,17 +18,20 @@ class Agent:
         """
         self.color = color
         self.board = {}
+        for r in range(11):
+            for c in range(11):
+                self.board[Coord(r, c)] = None
         match color:
             case PlayerColor.RED:
-                print("Testing: I am playing as RED")
+                print("AGENT_MC_2: I am playing as RED")
             case PlayerColor.BLUE:
-                print("Testing: I am playing as BLUE")
-
+                print("AGENT_MC_2: I am playing as BLUE")
+    
     def get_color(self) -> PlayerColor:
         return self.color
     def get_board(self) -> PlayerColor:
         return self.board
-    
+
     def action(self, **referee: dict) -> Action:
         """
         This method is called by the referee each time it is the agent's turn
@@ -38,9 +41,14 @@ class Agent:
             return PlaceAction(Coord(5,4), Coord(5,5), Coord(5,6), Coord(4,5))
         if sum(1 for color in self.board.values() if color == self.color) == 0:
             return PlaceAction(Coord(2,1), Coord(2,2), Coord(2,3), Coord(1,2))
-        return random.choice(generate_possible_moves(self.board, self.color))
+        
+        mcts = MCTS(self.board, self.color, 1, 0.5)
 
-    def update(self, color: PlayerColor, action: Action, **referee: dict):
+        best_child = mcts.selection(mcts.root)
+        action = best_child.action
+        return action
+
+    def update(self, color: PlayerColor, action: Action, **referee: dict) -> None:
         """
         This method is called by the referee after an agent has taken their
         turn. You should use it to update the agent's internal game state. 
