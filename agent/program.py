@@ -5,6 +5,7 @@ import random
 from referee.game import PlayerColor, Action, PlaceAction, Coord
 from .utils import render_board, place_tetromino, generate_possible_moves
 from .mcts import MCTS
+from .ending import Ending
 
 class Agent:
     """
@@ -35,22 +36,29 @@ class Agent:
         This method is called by the referee each time it is the agent's turn
         to take an action. It must always return an action object. 
         """
+        # Modify how to choose first move
         cell_count = sum(1 for value in self.board.values() if value is not None)
         if cell_count == 0:
             return PlaceAction(Coord(5,4), Coord(5,5), Coord(5,6), Coord(4,5))
         if sum(1 for color in self.board.values() if color == self.color) == 0:
             return PlaceAction(Coord(2,1), Coord(2,2), Coord(2,3), Coord(1,2))
         
-        if cell_count < 60:
+        # return random.choice(generate_possible_moves(self.board, self.color))
+        print("Cell count: ", cell_count)
+        if cell_count < 50:
+            print("Decision by: Random")
             return random.choice(generate_possible_moves(self.board, self.color))
-        elif cell_count < 80:
+        elif cell_count < 75:
+            print("Decision by: MCTS")
             mcts = MCTS(self.board, self.color, 20, 0.1)
+            best_child = mcts.selection(mcts.root)
+            action = best_child.action
+            return action
         else:
-            mcts = MCTS(self.board, self.color, 30, 0.1)
-        
-        best_child = mcts.selection(mcts.root)
-        action = best_child.action
-        return action
+            print("Decision by: Ending")
+            ending = Ending(self.board, self.color)
+            ending_move = ending.generate_ending_move()
+            return ending_move
 
     def update(self, color: PlayerColor, action: Action, **referee: dict) -> None:
         """

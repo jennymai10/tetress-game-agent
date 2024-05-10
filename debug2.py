@@ -1,8 +1,9 @@
 import time
 import random
-from referee.game import PlayerColor, Coord, BOARD_N, Board
+from referee.game import PlayerColor, Coord, PlaceAction
 from agent.utils import render_board, count_holes, generate_possible_moves, place_tetromino
 from agent.mcts import MCTS
+from agent.ending import Ending
 
 target = None
 board = {}
@@ -25,6 +26,17 @@ print(render_board(board))
 # print("Chosen move: ", best_child.uct, best_child.action)
 # print(render_board(best_child.board, best_child.action))
 
-# action = random.choice(generate_possible_moves(board, PlayerColor.BLUE))
-# board = place_tetromino(board, action, PlayerColor.BLUE)
+# action = generate_possible_moves(board, PlayerColor.BLUE)
+# for a in action:
+#     new_board = place_tetromino(board, a, PlayerColor.BLUE)
+#     print(render_board(board, a))
 # print(render_board(board))
+
+ending = Ending(board, PlayerColor.BLUE)
+ending_move = ending.generate_ending_move()
+new_board = place_tetromino(board, ending_move, PlayerColor.BLUE)
+print(render_board(new_board, ending_move))
+print(render_board(new_board))
+
+# test_board = place_tetromino(board, PlaceAction(Coord(0,4), Coord(0,5), Coord(1,5), Coord(2,5)), PlayerColor.BLUE)
+# print(render_board(test_board, PlaceAction(Coord(0,4), Coord(0,5), Coord(1,5), Coord(2,5))))

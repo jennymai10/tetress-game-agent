@@ -183,9 +183,7 @@ def get_all_tetromino_shapes():
     all_shapes = [shape for shapes in tetrominoes.values() for shape in shapes]
     return all_shapes
 
-
-        
-def is_valid_placement(positions: PlaceAction, board, mycolor: PlayerColor) -> bool:
+def is_valid_placement(positions: PlaceAction, board: dict[Coord, PlayerColor], mycolor: PlayerColor) -> bool:
     adjacent = set()
     for cell in [positions.c1, positions.c2, positions.c3, positions.c4]:
         if board.get(cell) is not None:
@@ -198,20 +196,20 @@ def is_valid_placement(positions: PlaceAction, board, mycolor: PlayerColor) -> b
     return any(board.get(cell) == mycolor for cell in adjacent)
 
 def place_tetromino(board: dict[Coord, PlayerColor], action: PlaceAction, mycolor: PlayerColor) -> dict[Coord, PlayerColor]:
-    new_board = board
+    new_board = board.copy()
     for pos in [action.c1, action.c2, action.c3, action.c4]:
         new_board[pos] = mycolor
     for row in range(11):
-        filled_line = sum(1 for col in range(11) if board.get(Coord(row, col)) is not None) == 11
+        filled_line = all(new_board.get(Coord(row, col)) is not None for col in range(11))
         if filled_line:
             for col in range(11):
-                board[Coord(row, col)] = None
+                del new_board[Coord(row, col)]
 
     for col in range(11):
-        filled_line = sum(1 for row in range(11) if board.get(Coord(row, col)) is not None) == 11
+        filled_line = all(new_board.get(Coord(row, col)) is not None for row in range(11))
         if filled_line:
             for row in range(11):
-                board[Coord(row, col)] = None
+                del new_board[Coord(row, col)]
     return new_board
 
 def winner(board: dict[Coord, PlayerColor], turn: PlayerColor) -> PlayerColor | None:
@@ -224,7 +222,7 @@ def winner(board: dict[Coord, PlayerColor], turn: PlayerColor) -> PlayerColor | 
     else:
         return None
 
-def get_valid_neighbors_wrap(coords: list[Coord], board: dict[Coord, PlayerColor], board_size: int = 11) -> list[Coord]:
+def get_valid_neighbors_list(coords: list[Coord], board: dict[Coord, PlayerColor], board_size: int = 11) -> list[Coord]:
     neighbors = []
     for coord in coords:
         for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
@@ -237,21 +235,19 @@ def get_valid_neighbors_wrap(coords: list[Coord], board: dict[Coord, PlayerColor
     return neighbors
     
 def generate_possible_moves(board: dict[Coord, PlayerColor], color: PlayerColor) -> list[PlaceAction]:
-    
-    my_cells = get_starting_cells(board, color)
-    my_neighbors = get_valid_neighbors_wrap(my_cells, board)
+    board_dict = board.copy()
+
+    my_cells = get_starting_cells(board_dict, color)
+    my_neighbors = get_valid_neighbors_list(my_cells, board_dict)
     actions = []
     for neighbor in my_neighbors:
-        for i in generate_pieces_for_position(board, neighbor):
+        for i in generate_pieces_for_position(board_dict, neighbor):
             if i not in actions:
                 actions.append(i)
     return actions
 
 
-def generate_pieces_for_position(
-        board: dict[Coord, PlayerColor],
-        cell: Coord
-) -> list[PlaceAction]:
+def generate_pieces_for_position(board: dict[Coord, PlayerColor], cell: Coord) -> list[PlaceAction]:
     """
     Given a cell coordinate and a board state, return all legal piece (tetromino) arrangements for that 
     cell in a list.

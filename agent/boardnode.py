@@ -4,7 +4,7 @@ from .utils import board_to_string, render_board, heuristic_evaluation
 class BoardNode:
     def __init__(self, board_dict: dict[Coord, PlayerColor], color: PlayerColor, parent: 'BoardNode' = None, action: 'PlaceAction' = None) -> None:
         self.board_str = board_to_string(board_dict)
-        self.board = board_dict
+        self.board = board_dict.copy()
         self.parent = parent
         self.action = action
         self.win = 0

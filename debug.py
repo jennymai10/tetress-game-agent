@@ -34,7 +34,7 @@ import cProfile
 
 def play_game(board: dict[Coord, PlayerColor], mycolor: PlayerColor) -> PlayerColor | None:
     agent1 = agent_mcts(PlayerColor.BLUE)
-    agent2 = agent_mcts_basic(PlayerColor.RED)
+    agent2 = agent_random(PlayerColor.RED)
 
     current_player = agent2
     board_dict = {}
