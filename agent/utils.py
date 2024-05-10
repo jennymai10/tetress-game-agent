@@ -199,17 +199,21 @@ def place_tetromino(board: dict[Coord, PlayerColor], action: PlaceAction, mycolo
     new_board = board.copy()
     for pos in [action.c1, action.c2, action.c3, action.c4]:
         new_board[pos] = mycolor
+    to_delete = []
     for row in range(11):
         filled_line = all(new_board.get(Coord(row, col)) is not None for col in range(11))
         if filled_line:
             for col in range(11):
-                del new_board[Coord(row, col)]
+                to_delete.append(Coord(row, col))
 
     for col in range(11):
         filled_line = all(new_board.get(Coord(row, col)) is not None for row in range(11))
         if filled_line:
             for row in range(11):
-                del new_board[Coord(row, col)]
+                to_delete.append(Coord(row, col))
+    for cell in to_delete:
+        if new_board.get(cell) is not None:
+            new_board.pop(cell)
     return new_board
 
 def winner(board: dict[Coord, PlayerColor], turn: PlayerColor) -> PlayerColor | None:
