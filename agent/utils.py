@@ -117,23 +117,38 @@ def move_is_legal(board: dict[Coord, PlayerColor], move: PlaceAction, color: Pla
     return True
 
 
-def random_first_move() -> PlaceAction:
-    # Randomly place a piece on the board
-    # Randomly select a piece type
-    piece_type = random.choice(list(PieceType))
-    random.seed(time.time() + 99999)
-    # Randomly select a cell to place the piece within the centre 4x4 grid to assert dominance
-    try:
-        cell = Coord(random.randint(4, 6), random.randint(4, 6))
-        piece = create_piece(piece_type, cell)
-        move = PlaceAction(*piece.coords)
-    except IllegalActionException:
-        random.seed(time.time())
-        cell = Coord(random.randint(0, 10), random.randint(0, 10))
-        piece = create_piece(piece_type, cell)
-        move = PlaceAction(*piece.coords)
-    return move
+def random_first_move(board_dict, mycolor):
+    """
+    Generate a random first move based on the current board state and color.
+    """
+    # If the board is empty, select a random location
+    if not any(value is not None for value in board_dict.values()):
+        empty_locations = [coord for coord, value in board_dict.items() if value is None]
+        location = random.choice(empty_locations)
+        move = PlaceAction(location, 0)  # 0 is the rotation, you can change it as needed
 
+    # If the player is red, they will place first
+    elif mycolor == PlayerColor.RED:
+        # Generate all possible moves
+        possible_moves = generate_moves(board_dict, mycolor)
+
+        # Select a random move
+        move = random.choice(possible_moves)
+
+    # If the player is blue, they will place after red
+    else:
+        # Simulate the first move of the red player
+        red_moves = generate_moves(board_dict, PlayerColor.RED)
+        red_move = random.choice(red_moves)
+        board_dict = place_tetromino(board_dict, red_move, PlayerColor.RED)
+
+        # Generate all possible moves for the updated board state
+        possible_moves = generate_moves(board_dict, mycolor)
+
+        # Select a random move
+        move = random.choice(possible_moves)
+
+    return move
 
 def count_holes(board: dict[Coord, PlayerColor]) -> int:
     disjoint_set = DisjointSet()

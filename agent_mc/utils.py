@@ -640,8 +640,8 @@ def move_is_legal(board: dict[Coord, PlayerColor], move: PlaceAction, color: Pla
 def random_first_move() -> PlaceAction:
     # Randomly place a piece on the board
     # Randomly select a piece type
-    piece_type = random.choice(list(PieceType))
     random.seed(time.time() + 500)
+    piece_type = random.choice(list(PieceType))
     # Randomly select a cell to place the piece within the centre 4x4 grid to assert dominance
     try:
         cell = Coord(random.randint(4, 6), random.randint(4, 6))
