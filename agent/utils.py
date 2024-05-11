@@ -132,8 +132,7 @@ def random_first_move() -> PlaceAction:
         cell = Coord(random.randint(0, 10), random.randint(0, 10))
         piece = create_piece(piece_type, cell)
         move = PlaceAction(*piece.coords)
-    finally:
-        return move
+    return move
 
 
 def count_holes(board: dict[Coord, PlayerColor]) -> int:
