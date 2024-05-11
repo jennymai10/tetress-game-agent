@@ -165,78 +165,78 @@ def count_holes(board: dict[Coord, PlayerColor]) -> int:
     return num_disjoint_sets
 
 
-# def heuristic_evaluation(board_dict: dict[Coord, PlayerColor], mycolor: PlayerColor) -> float:
-#     """
-#     Evaluate the quality of each possible action based on the current game state using heuristics.
-#     Higher values indicate more favorable actions.
-#     """
-#     oppo_color = PlayerColor.RED if mycolor == PlayerColor.BLUE else PlayerColor.BLUE
-#     oppo_cell_count = len(get_starting_cells(board_dict, oppo_color))
-#     my_cell_count = len(get_starting_cells(board_dict, mycolor))
-#
-#     # Favor clearing opponent's cells without losing too much our cell
-#
-#     # Penalize odd number of holes
-#     holes_penalty = 0
-#     if sum(1 for value in board_dict.values() if value is not None) > 80:
-#         holes_count = count_holes(board_dict)
-#         if holes_count % 2 == 0:
-#             holes_penalty = -1
-#         else:
-#             holes_penalty = 1
-#
-#     # Favor the middle of the board
-#     center = Coord(5, 5)
-#     distance_penalty = 0
-#     for coord, color in board_dict.items():
-#         if color == mycolor:
-#             distance_penalty -= ((coord.r - center.r) ** 2 + (coord.c - center.c) ** 2)
-#
-#     evaluation = (my_cell_count + 0.001) / (oppo_cell_count + 0.001) + holes_penalty + distance_penalty
-#     return evaluation
-
 def heuristic_evaluation(board_dict: dict[Coord, PlayerColor], mycolor: PlayerColor) -> float:
     """
     Evaluate the quality of each possible action based on the current game state using heuristics.
     Higher values indicate more favorable actions.
     """
-    best_evaluation = float('-inf')
-
     oppo_color = PlayerColor.RED if mycolor == PlayerColor.BLUE else PlayerColor.BLUE
-    oppo_cell_count_before = len(get_starting_cells(board_dict, oppo_color))
+    oppo_cell_count = len(get_starting_cells(board_dict, oppo_color))
     my_cell_count = len(get_starting_cells(board_dict, mycolor))
 
-    # Generate all possible moves
-    possible_moves = generate_moves(board_dict, mycolor)
+    # Favor clearing opponent's cells without losing too much our cell
 
-    for action in possible_moves:
-        # Simulate the move
-        new_board = place_tetromino(board_dict, action, mycolor)
-        oppo_cell_count_after = len(get_starting_cells(new_board, oppo_color))
+    # Penalize odd number of holes
+    holes_penalty = 0
+    if sum(1 for value in board_dict.values() if value is not None) > 80:
+        holes_count = count_holes(board_dict)
+        if holes_count % 2 == 0:
+            holes_penalty = -1
+        else:
+            holes_penalty = 1
 
-        # Calculate the number of opponent cells that would be cleared by the move
-        clear_bonus = oppo_cell_count_before - oppo_cell_count_after
+    # Favor the middle of the board
+    center = Coord(5, 5)
+    distance_penalty = 0
+    for coord, color in board_dict.items():
+        if color == mycolor:
+            distance_penalty -= ((coord.r - center.r) ** 2 + (coord.c - center.c) ** 2)
 
-        # Other heuristics remain the same
-        holes_penalty = 0
-        if sum(1 for value in board_dict.values() if value is not None) > 80:
-            holes_count = count_holes(board_dict)
-            if holes_count % 2 == 0:
-                holes_penalty = -1
-            else:
-                holes_penalty = 1
+    evaluation = (my_cell_count + 0.001) / (oppo_cell_count + 0.001) + holes_penalty + distance_penalty
+    return evaluation
 
-        # Favor the middle of the board
-        center = Coord(5, 5)
-        distance_penalty = 0
-        for coord, color in board_dict.items():
-            if color == mycolor:
-                dr = min(abs(coord.r - center.r), 11 - abs(coord.r - center.r))
-                dc = min(abs(coord.c - center.c), 11 - abs(coord.c - center.c))
-                distance_penalty -= (dr ** 2 + dc ** 2)
-
-        evaluation = (my_cell_count + 0.001) / (
-                    oppo_cell_count_after + 0.001) + holes_penalty + distance_penalty + clear_bonus
-        best_evaluation = max(best_evaluation, evaluation)
-
-    return best_evaluation
+# def heuristic_evaluation(board_dict: dict[Coord, PlayerColor], mycolor: PlayerColor) -> float:
+#     """
+#     Evaluate the quality of each possible action based on the current game state using heuristics.
+#     Higher values indicate more favorable actions.
+#     """
+#     best_evaluation = float('-inf')
+#
+#     oppo_color = PlayerColor.RED if mycolor == PlayerColor.BLUE else PlayerColor.BLUE
+#     oppo_cell_count_before = len(get_starting_cells(board_dict, oppo_color))
+#     my_cell_count = len(get_starting_cells(board_dict, mycolor))
+#
+#     # Generate all possible moves
+#     possible_moves = generate_moves(board_dict, mycolor)
+#
+#     for action in possible_moves:
+#         # Simulate the move
+#         new_board = place_tetromino(board_dict, action, mycolor)
+#         oppo_cell_count_after = len(get_starting_cells(new_board, oppo_color))
+#
+#         # Calculate the number of opponent cells that would be cleared by the move
+#         clear_bonus = oppo_cell_count_before - oppo_cell_count_after
+#
+#         # Other heuristics remain the same
+#         holes_penalty = 0
+#         if sum(1 for value in board_dict.values() if value is not None) > 80:
+#             holes_count = count_holes(board_dict)
+#             if holes_count % 2 == 0:
+#                 holes_penalty = -1
+#             else:
+#                 holes_penalty = 1
+#
+#         # Favor the middle of the board
+#         center = Coord(5, 5)
+#         distance_penalty = 0
+#         for coord, color in board_dict.items():
+#             if color == mycolor:
+#                 dr = min(abs(coord.r - center.r), 11 - abs(coord.r - center.r))
+#                 dc = min(abs(coord.c - center.c), 11 - abs(coord.c - center.c))
+#                 distance_penalty -= (dr ** 2 + dc ** 2)
+#
+#         evaluation = (my_cell_count + 0.001) / (
+#                     oppo_cell_count_after + 0.001) + holes_penalty + distance_penalty + clear_bonus
+#         best_evaluation = max(best_evaluation, evaluation)
+#
+#     return best_evaluation

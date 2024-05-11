@@ -20,7 +20,7 @@ class MinimaxAgent:
         for move in generate_moves(board, self.color):
             new_board = place_tetromino(board, move, self.color)
             node = MinimaxNode(new_board, move, self.color)
-            value = self.minimax(node, 20, -float('inf'), float('inf'), True)
+            value = self.minimax(node, 12, -float('inf'), float('inf'), True)
 
             if value > best_value:
                 best_value = value
