@@ -35,15 +35,6 @@ class MCTS:
             new_node = BoardNode(new_board, self.mycolor, node, move)
             node.children.append(new_node)
         node.children.sort(key=lambda child: child.uct, reverse=True)
-        # if sum(1 for value in board_dict.values() if value is not None) > 80:
-        #     holes_count = count_holes(board_dict)
-        #     if holes_count <= 6:
-        #         oppo_color = PlayerColor.RED if self.mycolor == PlayerColor.BLUE else PlayerColor.BLUE
-        #         for child in node.children:
-        #             if len(generate_possible_moves(child.board, oppo_color)) == 0:
-        #                 print("Found ending solution: ", child.action)
-        #                 node.children = [child]
-        #                 return
         node.children = node.children[:10]
 
     def simulation(self, node: BoardNode) -> PlayerColor | None:

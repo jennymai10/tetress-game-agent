@@ -59,5 +59,5 @@ def play_game(board: dict[Coord, PlayerColor], mycolor: PlayerColor) -> PlayerCo
     return winner(board_dict, current_player)
 
 if __name__ == '__main__':
-    c = play_game(None, PlayerColor.RED)
+    cProfile.run('c = play_game(None, PlayerColor.RED)')
     # print("WINNER is: ", c)
