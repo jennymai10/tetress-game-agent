@@ -17,7 +17,7 @@ class Agent:
     def action(self, **referee: dict) -> Action:
         # make a random move
         if not self.board:
-            return random_first_move(self.color, self.board)
+            return random_first_move(self.color)
         return self.agent.select_move(self.board)
 
     def update(self, color: PlayerColor, action: Action, **referee: dict) -> None:
