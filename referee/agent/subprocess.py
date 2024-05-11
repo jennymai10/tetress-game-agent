@@ -12,8 +12,8 @@ from .resources import CountdownTimer, MemoryWatcher, set_space_line
 from .io import AsyncProcessStatus, m_pickle, m_unpickle,\
     _ACK, _REPLY_OK, _REPLY_EXC
 
-_STDOUT_OVERRIDE_MESSAGE = "stdout usage is not allowed in agent (use stderr)"
-_STDIN_OVERRIDE_MESSAGE = "stdin usage is not allowed in agent"
+_STDOUT_OVERRIDE_MESSAGE = "stdout usage is not allowed in agent_mc (use stderr)"
+_STDIN_OVERRIDE_MESSAGE = "stdin usage is not allowed in agent_mc"
 
 
 # Wrapper subprocess entry point

@@ -12,7 +12,7 @@ from .client import RemoteProcessClassClient, AsyncProcessStatus, \
     WrappedProcessException
 from .resources import ResourceLimitException
 
-RECV_TIMEOUT = TIME_LIMIT_NOVALUE # Max seconds for agent to reply (wall clock)
+RECV_TIMEOUT = TIME_LIMIT_NOVALUE # Max seconds for agent_mc to reply (wall clock)
 
 
 
@@ -22,7 +22,7 @@ class AgentProxyPlayer(Player):
     utilisation checks and exception handling. Agents are run in a separate
     process so that they cannot interfere with the referee's game loop. Note
     that this class is implemented as an async context manager to implicitly
-    take care of the agent's lifecycle.
+    take care of the agent_mc's lifecycle.
     """
 
     def __init__(self, 
@@ -37,25 +37,25 @@ class AgentProxyPlayer(Player):
         subproc_output: bool = True,
     ):
         '''
-        Create an agent proxy player.
+        Create an agent_mc proxy player.
 
-        name: Name of the agent (for logging purposes).
-        color: The player colour the agent is playing as. This is passed to the
-            agent's constructor.
-        agent_loc: Location of the agent package/class.
-        time_limit: Maximum CPU time (in seconds) that the agent is allowed to
+        name: Name of the agent_mc (for logging purposes).
+        color: The player colour the agent_mc is playing as. This is passed to the
+            agent_mc's constructor.
+        agent_loc: Location of the agent_mc package/class.
+        time_limit: Maximum CPU time (in seconds) that the agent_mc is allowed to
             run for in total. If None, no time limit is enforced.
-        space_limit: Maximum memory (in MB) that the agent is allowed to use
+        space_limit: Maximum memory (in MB) that the agent_mc is allowed to use
             at any one time. If None, no space limit is enforced.
         res_limit_tolerance: A multiplier for resource limit enforcement, not
-            known to the agent itself. For example, if the agent is allowed 1 
-            second of CPU time, and the tolerance is 1.1, then the agent 
+            known to the agent_mc itself. For example, if the agent_mc is allowed 1
+            second of CPU time, and the tolerance is 1.1, then the agent_mc
             will be allowed to run for 1.1 seconds before being terminated,
             but will only be told that it has used 1 second of CPU time.
         log: LogStream to use for logging.
         intercept_exc_type: Exception type to re-raised when an exception is
-            caught from the agent process. 
-        subproc_output: Whether to print the agent's stderr stream to the
+            caught from the agent_mc process.
+        subproc_output: Whether to print the agent_mc's stderr stream to the
             terminal. This is useful for debugging.
         '''
         super().__init__(color)
@@ -72,7 +72,7 @@ class AgentProxyPlayer(Player):
             recv_timeout = RECV_TIMEOUT, 
             subproc_output = subproc_output,
             log = log,
-            # Class constructor arguments (passed to agent)
+            # Class constructor arguments (passed to agent_mc)
             color = color
         )
         self._log = log
@@ -93,7 +93,7 @@ class AgentProxyPlayer(Player):
             self._log.error("\n")
 
             raise self._InterceptExc(
-                f"{str(e)} in {self._name} agent",
+                f"{str(e)} in {self._name} agent_mc",
                 self._color
             )
 
@@ -106,7 +106,7 @@ class AgentProxyPlayer(Player):
             self._log.error("\n")
 
             raise self._InterceptExc(
-                f"error in {self._name} agent\n"
+                f"error in {self._name} agent_mc\n"
                 f"{self._ret_symbol} {err_lines[-1]}",
                 self._color
             )
@@ -120,21 +120,21 @@ class AgentProxyPlayer(Player):
             )
 
     async def __aenter__(self) -> 'AgentProxyPlayer':
-        # Import the agent class (in a separate process). Note: We are wrapping
+        # Import the agent_mc class (in a separate process). Note: We are wrapping
         # another async context manager here, so need to use the __aenter__ and
         # __aexit__ methods.
-        self._log.debug(f"creating agent subprocess...")
+        self._log.debug(f"creating agent_mc subprocess...")
         with self._intercept_exc():
             await self._agent.__aenter__()
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self._agent.__aexit__(exc_type, exc_value, traceback)
-        self._log.debug(f"agent process terminated")
+        self._log.debug(f"agent_mc process terminated")
 
     async def action(self) -> Action:
         """
-        Get the agent's action for the current turn.
+        Get the agent_mc's action for the current turn.
         """
         self._log.debug(f"call 'action()'...")
 
@@ -147,7 +147,7 @@ class AgentProxyPlayer(Player):
 
     async def update(self, color: PlayerColor, action: Action):
         """
-        Update the agent with the latest action from the game.
+        Update the agent_mc with the latest action from the game.
         """
         self._log.debug(f"call 'update({color!r}, {action!r})'...")
 

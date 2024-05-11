@@ -9,7 +9,7 @@ from binascii import b2a_base64, a2b_base64
 from typing import Any
 
 
-_SUBPROC_MODULE = "referee.agent.subprocess"
+_SUBPROC_MODULE = "referee.agent_mc.subprocess"
 _ACK = "ACK"
 _REPLY_OK = b"OK"
 _REPLY_EXC = b"EXC"

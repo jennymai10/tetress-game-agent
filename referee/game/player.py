@@ -50,7 +50,7 @@ class PlayerColor(Enum):
 class Player(ABC):
     """
     An abstract base class for a player in the game, used internally by the
-    referee as an interface to an agent or human player.
+    referee as an interface to an agent_mc or human player.
     """
     def __init__(self, color: PlayerColor):
         self._color = color

@@ -1,7 +1,7 @@
 from referee.game import PlayerColor, Coord, BOARD_N, Board
-from agent.utils import render_board, place_tetromino, winner
-from agent.mcts import MCTS
-from agent.program import Agent as agent_mcts
+from agent_mc.utils import render_board, place_tetromino, winner
+from agent_mc.mcts import MCTS
+from agent_mc.program import Agent as agent_mcts
 from agent_mc_2.program_2 import Agent as agent_mcts_basic
 from agent_random import Agent as agent_random
 import cProfile

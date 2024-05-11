@@ -62,7 +62,7 @@ class Board:
     A class representing the game board for internal use in the referee. 
 
     NOTE: Don't assume this class is an "ideal" board representation for your
-    own agent; you should think carefully about how to design data structures
+    own agent_mc; you should think carefully about how to design data structures
     for representing the state of a game with respect to your chosen strategy.
     This class has not been optimised beyond what is necessary for the referee.
     """

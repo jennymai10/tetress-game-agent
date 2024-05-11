@@ -3,17 +3,17 @@
 
 from referee.game import PlayerColor, Action, PlaceAction, Coord
 import random
-from agent.utils import place_tetromino, generate_possible_moves
+from agent_mc.utils import place_tetromino, generate_possible_moves
 
 class Agent:
     """
-    This class is the "entry point" for your agent, providing an interface to
+    This class is the "entry point" for your agent_mc, providing an interface to
     respond to various Tetress game events.
     """
 
     def __init__(self, color: PlayerColor, **referee: dict):
         """
-        This constructor method runs when the referee instantiates the agent.
+        This constructor method runs when the referee instantiates the agent_mc.
         Any setup and/or precomputation should be done here.
         """
         self.color = color
@@ -31,7 +31,7 @@ class Agent:
     
     def action(self, **referee: dict) -> Action:
         """
-        This method is called by the referee each time it is the agent's turn
+        This method is called by the referee each time it is the agent_mc's turn
         to take an action. It must always return an action object. 
         """
         if sum(1 for color in self.board.values() if color != None) == 0:
@@ -42,7 +42,7 @@ class Agent:
     
     def update(self, color: PlayerColor, action: Action, **referee: dict):
         """
-        This method is called by the referee after an agent has taken their
-        turn. You should use it to update the agent's internal game state. 
+        This method is called by the referee after an agent_mc has taken their
+        turn. You should use it to update the agent_mc's internal game state.
         """
         self.board = place_tetromino(self.board, action, color)
