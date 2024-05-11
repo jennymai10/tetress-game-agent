@@ -1,11 +1,13 @@
 import random
 import math
 from .boardnode import BoardNode
-from .utils import generate_possible_moves, place_tetromino, render_board, winner, heuristic_evaluation, string_to_board, count_holes
+from .utils import generate_moves, place_tetromino, winner, heuristic_evaluation, string_to_board
 from referee.game import PlayerColor, Coord
 
+
 class MCTS:
-    def __init__(self, root_board_dict: dict[Coord, PlayerColor], color: PlayerColor, iterations: int, constant = 0.5):
+    def __init__(self, root_board_dict: dict[Coord, PlayerColor], color: PlayerColor, iterations: int,
+                 constant=math.sqrt(2)):
         self.root = BoardNode(root_board_dict, color)
         self.mycolor = color
         self.exploration_constant = constant
@@ -21,7 +23,7 @@ class MCTS:
             playout = self.simulation(node)
             self.backpropagation(node, playout)
         # self.root.print_tree()
-    
+
     def selection(self, node: BoardNode) -> BoardNode:
         return max(node.children, key=lambda child: child.uct)
 
@@ -29,7 +31,7 @@ class MCTS:
     def expansion(self, node: BoardNode) -> None:
         # Create a new child node for each possible move
         board_dict = string_to_board(node.board_str)
-        moves = generate_possible_moves(board_dict, self.mycolor)
+        moves = generate_moves(board_dict, self.mycolor)
         for move in moves:
             new_board = place_tetromino(board_dict, move, self.mycolor)
             new_node = BoardNode(new_board, self.mycolor, node, move)
@@ -43,12 +45,10 @@ class MCTS:
         current_player = self.mycolor
         turn_num = 1
         while turn_num <= 150:
-            possible_actions = generate_possible_moves(board_dict, current_player)
-            if len(possible_actions) == 0  and current_player == PlayerColor.RED:
-                # print("BLUE won")
+            possible_actions = generate_moves(board_dict, current_player)
+            if len(possible_actions) == 0 and current_player == PlayerColor.RED:
                 return PlayerColor.BLUE
             elif len(possible_actions) == 0 and current_player == PlayerColor.BLUE:
-                # print("RED won")
                 return PlayerColor.RED
             action = random.choice(possible_actions)
             board_dict = place_tetromino(board_dict, action, current_player)
@@ -64,7 +64,7 @@ class MCTS:
         node.visit += 1
         if won == self.mycolor:
             node.win += 1
-        elif won == None:
+        elif won is None:
             node.draw += 1
         else:
             node.loss += 1
@@ -73,7 +73,8 @@ class MCTS:
         if not node.children:
             node.uct = heuristic_evaluation(node.board, node.mycolor)
         elif node.parent is not None:
-            node.uct = (node.win / node.visit) + heuristic_evaluation(node.board, node.mycolor) * 0.5 + (self.exploration_constant * math.sqrt(math.log(node.parent.visit) / node.visit))
+            node.uct = (node.win / node.visit) + heuristic_evaluation(node.board, node.mycolor) * 0.5 + (
+                        self.exploration_constant * math.sqrt(math.log(node.parent.visit) / node.visit))
             self.backpropagation(node.parent, won)
         else:
             node.uct = (node.win / node.visit)
