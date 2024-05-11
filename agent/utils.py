@@ -1,10 +1,39 @@
 import random
 import time
 
-from agent_mc.disjointset import DisjointSet
-from agent_mc.utils import get_starting_cells, get_valid_neighbors
+from .disjointset import DisjointSet
 from referee.game import Coord, PlaceAction, PlayerColor, IllegalActionException
 from referee.game.pieces import PieceType, create_piece
+
+
+def get_valid_neighbors(coord: Coord, board: dict[Coord, PlayerColor], board_size: int = 11) -> list[Coord]:
+    """
+    Get the neighbors of a given coordinate on a toroidal board.
+    """
+    neighbors = []
+    for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+        # Adjust row and column values for toroidal wrap-around
+        new_r = (coord.r + dr) % board_size
+        new_c = (coord.c + dc) % board_size
+        new_coord = Coord(new_r, new_c)
+        if is_valid_cell(board, new_coord):
+            neighbors.append(new_coord)
+    return neighbors
+
+
+def is_valid_cell(board: dict[Coord, PlayerColor], coord: Coord) -> bool:
+    """
+    Check if a cell is valid to place
+    """
+    # If coord is not empty to place
+    return board.get(coord) is None
+
+
+def get_starting_cells(board: dict[Coord, PlayerColor], mycolor: PlayerColor) -> list[Coord]:
+    """
+    Get the starting cells of my color
+    """
+    return [cell for cell in board.keys() if board[cell] == mycolor]
 
 
 def place_tetromino(board: dict[Coord, PlayerColor], action: PlaceAction, mycolor: PlayerColor) \
@@ -206,7 +235,8 @@ def heuristic_evaluation(board_dict: dict[Coord, PlayerColor], mycolor: PlayerCo
                 dc = min(abs(coord.c - center.c), 11 - abs(coord.c - center.c))
                 distance_penalty -= (dr ** 2 + dc ** 2)
 
-        evaluation = (my_cell_count + 0.001) / (oppo_cell_count_after + 0.001) + holes_penalty + distance_penalty + clear_bonus
+        evaluation = (my_cell_count + 0.001) / (
+                    oppo_cell_count_after + 0.001) + holes_penalty + distance_penalty + clear_bonus
         best_evaluation = max(best_evaluation, evaluation)
 
     return best_evaluation
