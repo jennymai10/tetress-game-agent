@@ -116,7 +116,7 @@ def move_is_legal(board: dict[Coord, PlayerColor], move: PlaceAction, color: Pla
 
     return True
 
-
+# changed
 def random_first_move(board_dict, mycolor):
     """
     Generate a random first move based on the current board state and color.

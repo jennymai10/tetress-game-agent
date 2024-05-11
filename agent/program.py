@@ -15,7 +15,7 @@ class Agent:
                 print("AGENT: I am playing as BLUE")
 
     def action(self, **referee: dict) -> Action:
-        # make a random first move
+        # make a random move
         if not self.board:
             return random_first_move(self.color, self.board)
         return self.agent.select_move(self.board)
