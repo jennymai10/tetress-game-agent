@@ -16,7 +16,7 @@ python3 --version
 
 python -m referee agent1 agent2
 
-i.e. python -m referee agent_mc agent_random
+i.e. python -m referee agent agent_random
 
 ## To time the program:
 

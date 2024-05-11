@@ -1,7 +1,7 @@
 import random
 import math
-from .boardnode_2 import BoardNode
-from .utils_2 import string_to_board, generate_possible_moves, place_tetromino, render_board, winner
+from agent.boardnode import BoardNode
+from agent.utils import string_to_board, generate_possible_moves, place_tetromino, render_board, winner
 from referee.game import PlayerColor, Action, PlaceAction, Coord, Board
 
 class MCTS:

@@ -1,7 +1,7 @@
 import random
 import math
 from .boardnode import BoardNode
-from .utils import generate_possible_moves, place_tetromino, render_board, winner, heuristic_evaluation, string_to_board
+from .utils import generate_possible_moves, place_tetromino, render_board, winner, heuristic_evaluation, string_to_board, count_holes
 from referee.game import PlayerColor, Coord
 
 class MCTS:
@@ -25,6 +25,7 @@ class MCTS:
     def selection(self, node: BoardNode) -> BoardNode:
         return max(node.children, key=lambda child: child.uct)
 
+    # Modify auto expand unvisited child node
     def expansion(self, node: BoardNode) -> None:
         # Create a new child node for each possible move
         board_dict = string_to_board(node.board_str)
@@ -34,10 +35,7 @@ class MCTS:
             new_node = BoardNode(new_board, self.mycolor, node, move)
             node.children.append(new_node)
         node.children.sort(key=lambda child: child.uct, reverse=True)
-        if self.iterations >= 10:
-            node.children = node.children[:10]
-        else:
-            node.children = node.children[:5]
+        node.children = node.children[:10]
 
     def simulation(self, node: BoardNode) -> PlayerColor | None:
         # Play a random playout from the new node to the end of the game
@@ -75,7 +73,7 @@ class MCTS:
         if not node.children:
             node.uct = heuristic_evaluation(node.board, node.mycolor)
         elif node.parent is not None:
-            node.uct = ((node.win / node.visit) + (self.exploration_constant * math.sqrt(2 * math.log(node.parent.visit) / node.visit)) + heuristic_evaluation(node.board, node.mycolor)) * 0.5
+            node.uct = (node.win / node.visit) + heuristic_evaluation(node.board, node.mycolor) * 0.5 + (self.exploration_constant * math.sqrt(math.log(node.parent.visit) / node.visit))
             self.backpropagation(node.parent, won)
         else:
             node.uct = (node.win / node.visit)
