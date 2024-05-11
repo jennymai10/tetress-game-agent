@@ -41,24 +41,15 @@ class Agent:
         # Modify how to choose first move
         cell_count = sum(1 for value in self.board.values() if value is not None)
         if cell_count == 0:
-            if self.color == PlayerColor.RED:
-                return random_first_move()
-            else:
-                mcts = MCTS(self.board, self.color, 10, 0.5)
-                best_child = mcts.selection(mcts.root)
-                action = best_child.action
-                return action
-        # if sum(1 for color in self.board.values() if color == self.color) == 0:
-        #     return PlaceAction(Coord(2, 1), Coord(2, 2), Coord(2, 3), Coord(1, 2))
+            return random_first_move()
 
-        # return random.choice(generate_possible_moves(self.board, self.color))
         print("Cell count: ", cell_count)
         if cell_count < 50:
             print("Decision by: Random")
             return random.choice(generate_moves(self.board, self.color))
         elif cell_count < 70:
             print("Decision by: MCTS")
-            mcts = MCTS(self.board, self.color, 50, 0.5)
+            mcts = MCTS(self.board, self.color, 215, 0.5)
             best_child = mcts.selection(mcts.root)
             action = best_child.action
             return action
