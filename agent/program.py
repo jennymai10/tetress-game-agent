@@ -49,7 +49,7 @@ class Agent:
         if cell_count < 50:
             print("Decision by: Random")
             return random.choice(generate_moves(self.board, self.color))
-        elif cell_count < 80:
+        elif cell_count < 90:
             print("Decision by: MCTS")
             mcts = MCTS(self.board, self.color, 30, 0.1)
             best_child = mcts.selection(mcts.root)
