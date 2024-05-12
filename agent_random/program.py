@@ -3,7 +3,7 @@
 
 from referee.game import PlayerColor, Action, PlaceAction, Coord
 import random
-from agent.utils import place_tetromino, generate_possible_moves
+from agent.utils import place_tetromino, generate_moves
 
 class Agent:
     """
@@ -38,7 +38,7 @@ class Agent:
             return PlaceAction(Coord(5,4), Coord(5,5), Coord(5,6), Coord(4,5))
         if sum(1 for color in self.board.values() if color == self.color) == 0:
             return PlaceAction(Coord(2,1), Coord(2,2), Coord(2,3), Coord(1,2))
-        return random.choice(generate_possible_moves(self.board, self.color))
+        return random.choice(generate_moves(self.board, self.color))
     
     def update(self, color: PlayerColor, action: Action, **referee: dict):
         """
