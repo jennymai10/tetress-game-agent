@@ -3,7 +3,7 @@
 
 from referee.game import PlayerColor, Action, PlaceAction, Coord
 import random
-from agent_mc.utils import place_tetromino, generate_possible_moves
+from agent.utils import place_tetromino, generate_possible_moves
 
 class Agent:
     """
