@@ -56,7 +56,7 @@ class Agent:
             return random.choice(generate_moves(self.board, self.color))
         elif cell_count < 75:
             print("Decision by: MCTS")
-            mcts = MCTS(self.board, self.color, 28, 2.4)
+            mcts = MCTS(self.board, self.color, 25, 2.4)
             best_child = mcts.selection(mcts.root)
             mcts.root.children.remove(best_child)
             while best_child.visit == 0:
