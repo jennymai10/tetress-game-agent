@@ -54,7 +54,7 @@ def heuristic_evaluation(board_dict: dict[Coord, PlayerColor], mycolor: PlayerCo
     evaluation = (my_cell_count + 0.001) / (oppo_cell_count + 0.001) + holes_penalty
     return evaluation
 
-
+ 
 def board_to_string(board: dict[Coord, PlayerColor]) -> str:
     """
     Convert the board to a string state

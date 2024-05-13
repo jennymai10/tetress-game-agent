@@ -20,6 +20,8 @@ class Agent:
         """
         self.color = color
         self.board = {}
+        self.my_list = []
+        self.oppo_list = []
         match color:
             case PlayerColor.RED:
                 print("MCTS: I am playing as RED")
@@ -49,7 +51,7 @@ class Agent:
         if cell_count < 50:
             print("Decision by: Random")
             return random.choice(generate_moves(self.board, self.color))
-        elif cell_count < 90:
+        elif cell_count < 85:
             print("Decision by: MCTS")
             mcts = MCTS(self.board, self.color, 30, 0.1)
             best_child = mcts.selection(mcts.root)
@@ -67,4 +69,3 @@ class Agent:
         turn. You should use it to update the agent_mc's internal game state.
         """
         self.board = place_tetromino(self.board, action, color)
-
