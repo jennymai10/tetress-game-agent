@@ -46,7 +46,7 @@ class Agent:
             return random_first_move(self.color, self.board)
 
         print("Cell count: ", cell_count)
-        if cell_count < 60: # or referee["time_remaining"] <= 25:
+        if cell_count < 60 or referee["time_remaining"] <= 25:
             print("Decision by: Random")
             # return self.minimax.select_move(self.board)
             return random.choice(generate_moves(self.board, self.color))
