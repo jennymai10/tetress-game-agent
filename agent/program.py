@@ -52,7 +52,7 @@ class Agent:
             return random.choice(generate_moves(self.board, self.color))
         elif cell_count < 72:
             print("Decision by: MCTS")
-            mcts = MCTS(self.board, self.color, 28, 1.7)
+            mcts = MCTS(self.board, self.color, 28, 1.414)
             for node in mcts.root.children:
                 if node.visit == 0:
                     mcts.root.children.remove(node)
@@ -61,7 +61,7 @@ class Agent:
             return action
         elif cell_count < 82:
             print("Decision by: MCTS")
-            mcts = MCTS(self.board, self.color, 38, 1.7)
+            mcts = MCTS(self.board, self.color, 38, 1.414)
             for node in mcts.root.children:
                 if node.visit == 0:
                     mcts.root.children.remove(node)
