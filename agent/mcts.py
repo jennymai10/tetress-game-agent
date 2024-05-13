@@ -72,7 +72,7 @@ class MCTS:
         if not node.children:
             node.uct = heuristic_evaluation(node.board, node.mycolor)
         elif node.parent is not None:
-            node.uct = (node.win / node.visit) + (self.exploration_constant * math.sqrt(math.log(node.parent.visit) / node.visit)) + heuristic_evaluation(node.board, node.mycolor) * 0.5
+            node.uct = (node.win / node.visit) + (self.exploration_constant * math.sqrt(math.log(node.parent.visit) / node.visit)) + heuristic_evaluation(node.board, node.mycolor) * 0.4
             self.backpropagation(node.parent, won)
         else:
             node.uct = (node.win / node.visit)
