@@ -6,32 +6,6 @@ from agent_mini import Agent as agent_mini
 from agent_random import Agent as agent_random
 import cProfile
 
-# target = None
-# state = {}
-# with open("test_csv/test-vis9.csv", "r") as file:
-#     input = file.read()
-# for r, line in enumerate(input.strip().split("\n")):
-#     for c, p in enumerate(line.split(",")):
-#         p = p.strip()
-#         if line[0] != "#" and line.strip() != "" and p != "":
-#             state[Coord(r, c)] = {
-#                 "r": PlayerColor.RED,
-#                 "b": PlayerColor.BLUE,
-#             }[p.lower()]
-#         if p == "B":
-#             target = Coord(r, c)
-
-# # Test the learning process of MC
-# def play_game(board_dict: dict[Coord, PlayerColor], mycolor: PlayerColor):
-#     mcts = MCTS(board_dict, mycolor, 25, 0.1)
-#     best_child = mcts.selection(mcts.root)
-#     print("Chosen move: ", best_child.uct, best_child.action)
-#     print(render_board(string_to_board(best_child.board_str), ansi=True))
-
-# if __name__ == '__main__':
-#     c = play_game(state, PlayerColor.RED)
-#     print("WINNER is: ", c)
-
 def play_game(board: dict[Coord, PlayerColor], mycolor: PlayerColor) -> PlayerColor | None:
     agent1 = agent_mcts(PlayerColor.BLUE)
     agent2 = agent_mini(PlayerColor.RED)
