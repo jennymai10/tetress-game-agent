@@ -27,7 +27,6 @@ class MCTS:
     def selection(self, node: BoardNode) -> BoardNode:
         return max(node.children, key=lambda child: child.uct)
 
-    # Modify auto expand unvisited child node
     def expansion(self, node: BoardNode) -> None:
         # Create a new child node for each possible move
         board_dict = string_to_board(node.board_str)
