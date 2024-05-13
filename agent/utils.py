@@ -332,7 +332,6 @@ def random_first_move(color, board: dict[Coord, PlayerColor]) -> PlaceAction:
     if color is PlayerColor.BLUE:
         # Find unoccupied cells
         occupied = board.keys()
-        
         unoccupied_cells = list(set(all_cells) - set(occupied))
         
         # Randomly select one of the unoccupied cells
