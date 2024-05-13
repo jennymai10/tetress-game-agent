@@ -304,21 +304,48 @@ def move_is_legal(board: dict[Coord, PlayerColor], move: PlaceAction, color: Pla
     return True
 
 
-def random_first_move() -> PlaceAction:
-    # Randomly place a piece on the board
-    # Randomly select a piece type
-    random.seed(time.time() + 500)
-    piece_type = random.choice(list(PieceType))
-    # Randomly select a cell to place the piece within the centre 4x4 grid to assert dominance
-    try:
-        cell = Coord(random.randint(4, 6), random.randint(4, 6))
-        piece = create_piece(piece_type, cell)
-        move = PlaceAction(*piece.coords)
-    except IllegalActionException:
-        cell = Coord(random.randint(0, 10), random.randint(0, 10))
-        piece = create_piece(piece_type, cell)
-        move = PlaceAction(*piece.coords)
-    finally:
+def valid_first_move(board, move, color) -> bool:
+    for coord in [move.c1, move.c2, move.c3, move.c4]:
+        if not is_valid_cell(board, coord):
+            return False
+        return True
+
+
+def random_first_move(color, board: dict[Coord, PlayerColor]) -> PlaceAction:
+    # preferred = PlaceAction(Coord(0, 0), Coord(0, 10), Coord(10, 0), Coord(10, 10))
+    all_cells = [Coord(r, c) for r in range(11) for c in range(11)]
+    middle_cells = [Coord(5, 4), Coord(4, 5), Coord(5, 6), Coord(6, 5)]
+
+    temp = board.copy()
+    if color is PlayerColor.RED:
+        choosen =  random.choice(middle_cells)
+        temp[choosen] = PlayerColor.RED
+        available_moves = generate_moves(temp, PlayerColor.RED)
+        move_score = []
+        for move in available_moves:
+            temp_board = place_tetromino(temp, move, PlayerColor.RED)
+            move_score.append((move, heuristic_evaluation(temp_board, PlayerColor.RED)))
+        # get highest score move
+        move = max(move_score, key=lambda x: x[1])[0]
+        return move
+    
+    if color is PlayerColor.BLUE:
+        # Find unoccupied cells
+        occupied = board.keys()
+        
+        unoccupied_cells = list(set(all_cells) - set(occupied))
+        
+        # Randomly select one of the unoccupied cells
+        selected_cell = random.choice(unoccupied_cells)
+        # change the color of the cell
+        temp[selected_cell] = PlayerColor.BLUE
+        available_moves = generate_moves(temp, PlayerColor.BLUE)
+        move_score = []
+        for move in available_moves:
+            temp_board = place_tetromino(temp, move, PlayerColor.BLUE)
+            move_score.append((move, heuristic_evaluation(temp_board, PlayerColor.BLUE)))
+        # get highest score move
+        move = max(move_score, key=lambda x: x[1])[0]
         return move
 
 def generate_possible_moves(board: dict[Coord, PlayerColor], color: PlayerColor) -> list[PlaceAction]:

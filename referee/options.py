@@ -46,18 +46,18 @@ PKG_SPEC_HELP = """
 The required positional arguments RED and BLUE are 'package specifications'.
 These specify which Python package/module to import and search for a class
 named 'Agent' (to instantiate for each player in the game). When we assess your
-final program this will just be the top-level package 'agent_mc' as per the
+final program this will just be the top-level package 'agent' as per the
 template given.
 
-You may wish to play games with another agent_mc class from a different package,
-for example, while you develop your agent_mc and want to compare different
+You may wish to play games with another agent class from a different package,
+for example, while you develop your agent and want to compare different
 approaches. To do this, use a absolute module name like used with ordinary
 import statements, e.g. 'some_moule.agent2'.
 
 By default, the referee will attempt to import the specified package/module and
 then load a class named 'Agent'. If you want the referee to look for a class
 with some other name you can put the alternative class name after a colon
-symbol ':' (e.g. 'agent_mc:DifferentAgent').
+symbol ':' (e.g. 'agent:DifferentAgent').
 """
 
 
@@ -71,7 +71,7 @@ def get_options():
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    # positional arguments used for player agent_mc package specifications:
+    # positional arguments used for player agent package specifications:
     positionals = parser.add_argument_group(
         title="Basic usage",
         description=PKG_SPEC_HELP,
@@ -120,7 +120,7 @@ def get_options():
         nargs="?",
         default=SPACE_LIMIT_DEFAULT,
         const=SPACE_LIMIT_NOVALUE,
-        help="limit on memory space (float, MB) for each agent_mc.",
+        help="limit on memory space (float, MB) for each agent.",
     )
     optionals.add_argument(
         "-t",
@@ -130,7 +130,7 @@ def get_options():
         nargs="?",
         default=TIME_LIMIT_DEFAULT,
         const=TIME_LIMIT_NOVALUE,
-        help="limit on CPU time (float, seconds) for each agent_mc.",
+        help="limit on CPU time (float, seconds) for each agent.",
     )
 
     verbosity_group = optionals.add_mutually_exclusive_group()

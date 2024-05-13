@@ -7,6 +7,8 @@ from .utils import render_board, place_tetromino, generate_moves, random_first_m
 from .mcts import MCTS
 from .ending import Ending
 
+from agent_mini.minimax import MinimaxAgent
+
 class Agent:
     """
     This class is the "entry point" for your agent_mc, providing an interface to
@@ -22,6 +24,7 @@ class Agent:
         self.board = {}
         self.my_list = []
         self.oppo_list = []
+        self.minimax = MinimaxAgent(color, self.board)
         match color:
             case PlayerColor.RED:
                 print("MCTS: I am playing as RED")
@@ -42,15 +45,15 @@ class Agent:
         """
         # Modify how to choose first move
         cell_count = sum(1 for value in self.board.values() if value is not None)
-        if cell_count == 0:
-            return random_first_move()
-        elif cell_count == 4:
-            return random_first_move()
+        if cell_count == 0 or cell_count == 4:
+            # frist move
+            return random_first_move(self.color, self.board)
 
         print("Cell count: ", cell_count)
         if cell_count < 50:
-            print("Decision by: Random")
-            return random.choice(generate_moves(self.board, self.color))
+            print("Decision by: MiniMax")
+            return self.minimax.select_move(self.board)
+            # return random.choice(generate_moves(self.board, self.color))
         elif cell_count < 85:
             print("Decision by: MCTS")
             mcts = MCTS(self.board, self.color, 30, 0.1)

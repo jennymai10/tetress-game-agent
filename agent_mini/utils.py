@@ -2,7 +2,7 @@ import random
 import time
 
 from .disjointset import DisjointSet
-from referee.game import Coord, PlaceAction, PlayerColor, IllegalActionException
+from referee.game import Coord, PlaceAction, PlayerColor, IllegalActionException, BOARD_N
 from referee.game.pieces import PieceType, create_piece
 
 
@@ -35,6 +35,20 @@ def get_starting_cells(board: dict[Coord, PlayerColor], mycolor: PlayerColor) ->
     """
     return [cell for cell in board.keys() if board[cell] == mycolor]
 
+def board_to_string(board: dict[Coord, PlayerColor]) -> str:
+    """
+    Convert the board to a string state
+    """
+    state = ""
+    for r in range(BOARD_N):
+        for c in range(BOARD_N):
+            if board.get(Coord(r, c), None) == PlayerColor.RED:
+                state += "1"
+            elif board.get(Coord(r, c), None) == PlayerColor.BLUE:
+                state += "2"
+            else:
+                state += "0"
+    return state
 
 def place_tetromino(board: dict[Coord, PlayerColor], action: PlaceAction, mycolor: PlayerColor) \
         -> dict[Coord, PlayerColor]:
@@ -116,24 +130,50 @@ def move_is_legal(board: dict[Coord, PlayerColor], move: PlaceAction, color: Pla
 
     return True
 
+def valid_first_move(board, move, color) -> bool:
+    for coord in [move.c1, move.c2, move.c3, move.c4]:
+        if not is_valid_cell(board, coord):
+            return False
+        return True
 
-def random_first_move(color) -> PlaceAction:
-    if color == PlayerColor.RED:
-        random.seed(time.time() + 500)
-        piece_type = random.choice(list(PieceType))
 
-        cell = Coord(random.randint(4, 6), random.randint(4, 6))
-        piece = create_piece(piece_type, cell)
-        move = PlaceAction(*piece.coords)
-    else:
-        random.seed(time.time() + 99999)
-        piece_type = random.choice(list(PieceType))
+def random_first_move(color, board: dict[Coord, PlayerColor]) -> PlaceAction:
+    # preferred = PlaceAction(Coord(0, 0), Coord(0, 10), Coord(10, 0), Coord(10, 10))
+    all_cells = [Coord(r, c) for r in range(11) for c in range(11)]
+    middle_cells = [Coord(5, 4), Coord(4, 5), Coord(5, 6), Coord(6, 5)]
 
-        cell = Coord(random.randint(4, 6), random.randint(4, 6))
-        piece = create_piece(piece_type, cell)
-        move = PlaceAction(*piece.coords)
+    temp = board.copy()
+    if color is PlayerColor.RED:
+        choosen =  random.choice(middle_cells)
+        temp[choosen] = PlayerColor.RED
+        available_moves = generate_moves(temp, PlayerColor.RED)
+        move_score = []
+        for move in available_moves:
+            temp_board = place_tetromino(temp, move, PlayerColor.RED)
+            move_score.append((move, heuristic_evaluation(temp_board, PlayerColor.RED)))
+        # get highest score move
+        move = max(move_score, key=lambda x: x[1])[0]
+        return move
+    
+    if color is PlayerColor.BLUE:
+        # Find unoccupied cells
+        occupied = board.keys()
+        
+        unoccupied_cells = list(set(all_cells) - set(occupied))
+        
+        # Randomly select one of the unoccupied cells
+        selected_cell = random.choice(unoccupied_cells)
+        # change the color of the cell
+        temp[selected_cell] = PlayerColor.BLUE
+        available_moves = generate_moves(temp, PlayerColor.BLUE)
+        move_score = []
+        for move in available_moves:
+            temp_board = place_tetromino(temp, move, PlayerColor.BLUE)
+            move_score.append((move, heuristic_evaluation(temp_board, PlayerColor.BLUE)))
+        # get highest score move
+        move = max(move_score, key=lambda x: x[1])[0]
+        return move
 
-    return move
 
 def count_holes(board: dict[Coord, PlayerColor]) -> int:
     disjoint_set = DisjointSet()
@@ -173,69 +213,25 @@ def heuristic_evaluation(board_dict: dict[Coord, PlayerColor], mycolor: PlayerCo
     oppo_cell_count = len(get_starting_cells(board_dict, oppo_color))
     my_cell_count = len(get_starting_cells(board_dict, mycolor))
 
-    # Favor clearing opponent's cells without losing too much our cell
-
-    # Penalize odd number of holes
     holes_penalty = 0
     if sum(1 for value in board_dict.values() if value is not None) > 80:
         holes_count = count_holes(board_dict)
-        if holes_count % 2 == 0:
+        if holes_count % 2 != 0:
             holes_penalty = -1
         else:
             holes_penalty = 1
 
-    # Favor the middle of the board
-    center = Coord(5, 5)
-    distance_penalty = 0
-    for coord, color in board_dict.items():
-        if color == mycolor:
-            distance_penalty -= ((coord.r - center.r) ** 2 + (coord.c - center.c) ** 2)
+    # Load the winning boards from a file
+    with open('winning_board.txt', 'r') as f:
+        winning_boards = [line.strip() for line in f]
 
-    evaluation = (my_cell_count + 0.001) / (oppo_cell_count + 0.001) + holes_penalty + distance_penalty
+    # Convert the current board to a string
+    board_string = board_to_string(board_dict)
+
+    # Check if the current board matches any of the winning boards
+    if board_string in winning_boards:
+        return float('inf')
+
+    # Continue with your existing heuristic evaluation...
+    evaluation = (my_cell_count + 0.001) / (oppo_cell_count + 0.001) + holes_penalty
     return evaluation
-
-# def heuristic_evaluation(board_dict: dict[Coord, PlayerColor], mycolor: PlayerColor) -> float:
-#     """
-#     Evaluate the quality of each possible action based on the current game state using heuristics.
-#     Higher values indicate more favorable actions.
-#     """
-#     best_evaluation = float('-inf')
-#
-#     oppo_color = PlayerColor.RED if mycolor == PlayerColor.BLUE else PlayerColor.BLUE
-#     oppo_cell_count_before = len(get_starting_cells(board_dict, oppo_color))
-#     my_cell_count = len(get_starting_cells(board_dict, mycolor))
-#
-#     # Generate all possible moves
-#     possible_moves = generate_moves(board_dict, mycolor)
-#
-#     for action in possible_moves:
-#         # Simulate the move
-#         new_board = place_tetromino(board_dict, action, mycolor)
-#         oppo_cell_count_after = len(get_starting_cells(new_board, oppo_color))
-#
-#         # Calculate the number of opponent cells that would be cleared by the move
-#         clear_bonus = oppo_cell_count_before - oppo_cell_count_after
-#
-#         # Other heuristics remain the same
-#         holes_penalty = 0
-#         if sum(1 for value in board_dict.values() if value is not None) > 80:
-#             holes_count = count_holes(board_dict)
-#             if holes_count % 2 == 0:
-#                 holes_penalty = -1
-#             else:
-#                 holes_penalty = 1
-#
-#         # Favor the middle of the board
-#         center = Coord(5, 5)
-#         distance_penalty = 0
-#         for coord, color in board_dict.items():
-#             if color == mycolor:
-#                 dr = min(abs(coord.r - center.r), 11 - abs(coord.r - center.r))
-#                 dc = min(abs(coord.c - center.c), 11 - abs(coord.c - center.c))
-#                 distance_penalty -= (dr ** 2 + dc ** 2)
-#
-#         evaluation = (my_cell_count + 0.001) / (
-#                     oppo_cell_count_after + 0.001) + holes_penalty + distance_penalty + clear_bonus
-#         best_evaluation = max(best_evaluation, evaluation)
-#
-#     return best_evaluation
