@@ -59,7 +59,7 @@ class Agent:
             best_child = mcts.selection(mcts.root)
             action = best_child.action
             return action
-        elif cell_count < 80:
+        elif cell_count < 82:
             print("Decision by: MCTS")
             mcts = MCTS(self.board, self.color, 34, 0.2)
             for node in mcts.root.children:
