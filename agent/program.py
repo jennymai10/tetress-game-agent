@@ -61,8 +61,8 @@ class Agent:
             mcts.root.children.remove(best_child)
             while best_child.visit == 0:
                 best_child = mcts.selection(mcts.root)
+                mcts.root.children.remove(best_child)
             action = best_child.action
-            print("Visited: ", best_child.visit)
             return action
         elif cell_count < 90:
             print("Decision by: MCTS")
@@ -71,8 +71,8 @@ class Agent:
             mcts.root.children.remove(best_child)
             while best_child.visit == 0:
                 best_child = mcts.selection(mcts.root)
+                mcts.root.children.remove(best_child)
             action = best_child.action
-            print("Visited: ", best_child.visit)
             return action
         else:
             print("Decision by: Ending")
