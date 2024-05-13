@@ -46,7 +46,7 @@ class Agent:
             return random_first_move(self.color, self.board)
 
         print("Cell count: ", cell_count)
-        if cell_count < 60 or referee["time_remaining"] <= 25:
+        if cell_count < 50 or referee["time_remaining"] <= 25:
             print("Decision by: Random")
             # return self.minimax.select_move(self.board)
             return random.choice(generate_moves(self.board, self.color))
@@ -59,9 +59,9 @@ class Agent:
             best_child = mcts.selection(mcts.root)
             action = best_child.action
             return action
-        elif cell_count < 82:
+        elif cell_count < 80:
             print("Decision by: MCTS")
-            mcts = MCTS(self.board, self.color, 38, 0.2)
+            mcts = MCTS(self.board, self.color, 34, 0.2)
             for node in mcts.root.children:
                 if node.visit == 0:
                     mcts.root.children.remove(node)
