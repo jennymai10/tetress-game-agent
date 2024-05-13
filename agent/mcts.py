@@ -22,7 +22,7 @@ class MCTS:
             self.expansion(node)
             playout = self.simulation(node)
             self.backpropagation(node, playout)
-        # self.root.print_tree()
+        self.root.print_tree()
 
     def selection(self, node: BoardNode) -> BoardNode:
         return max(node.children, key=lambda child: child.uct)
