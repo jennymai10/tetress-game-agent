@@ -43,10 +43,8 @@ class Agent:
         This method is called by the referee each time it is the agent_mc's turn
         to take an action. It must always return an action object.
         """
-        # Modify how to choose first move
         cell_count = sum(1 for value in self.board.values() if value is not None)
         if cell_count == 0 or cell_count == 4:
-            # frist move
             return random_first_move(self.color, self.board)
 
         print("Cell count: ", cell_count)
@@ -56,7 +54,7 @@ class Agent:
             return random.choice(generate_moves(self.board, self.color))
         elif cell_count < 75:
             print("Decision by: MCTS")
-            mcts = MCTS(self.board, self.color, 25, 1.414)
+            mcts = MCTS(self.board, self.color, 28, 1.1)
             best_child = mcts.selection(mcts.root)
             mcts.root.children.remove(best_child)
             while best_child.visit == 0:
@@ -64,9 +62,9 @@ class Agent:
                 mcts.root.children.remove(best_child)
             action = best_child.action
             return action
-        elif cell_count < 90:
+        elif cell_count < 85:
             print("Decision by: MCTS")
-            mcts = MCTS(self.board, self.color, 40, 1.414)
+            mcts = MCTS(self.board, self.color, 38, 1.1)
             best_child = mcts.selection(mcts.root)
             mcts.root.children.remove(best_child)
             while best_child.visit == 0:
