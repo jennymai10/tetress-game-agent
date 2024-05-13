@@ -27,7 +27,6 @@ class MCTS:
     def selection(self, node: BoardNode) -> BoardNode:
         return max(node.children, key=lambda child: child.uct)
 
-    # Modify auto expand unvisited child node
     def expansion(self, node: BoardNode) -> None:
         # Create a new child node for each possible move
         board_dict = string_to_board(node.board_str)
@@ -73,8 +72,7 @@ class MCTS:
         if not node.children:
             node.uct = heuristic_evaluation(node.board, node.mycolor)
         elif node.parent is not None:
-            node.uct = (node.win / node.visit) + heuristic_evaluation(node.board, node.mycolor) * 0.5 + (
-                        self.exploration_constant * math.sqrt(math.log(node.parent.visit) / node.visit))
+            node.uct = (node.win / node.visit) + (self.exploration_constant * math.sqrt(math.log(node.parent.visit) / node.visit)) + heuristic_evaluation(node.board, node.mycolor) * 0.3
             self.backpropagation(node.parent, won)
         else:
             node.uct = (node.win / node.visit)
