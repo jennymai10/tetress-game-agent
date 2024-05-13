@@ -7,7 +7,7 @@ from .utils import render_board, place_tetromino, generate_moves, random_first_m
 from .mcts import MCTS
 from .ending import Ending
 
-from agent_mini.minimax import MinimaxAgent
+from .minimax import MinimaxAgent
 
 class Agent:
     """
