@@ -7,8 +7,8 @@ from agent_random import Agent as agent_random
 import cProfile
 
 def play_game(board: dict[Coord, PlayerColor], mycolor: PlayerColor) -> PlayerColor | None:
-    agent1 = agent_mcts(PlayerColor.BLUE)
-    agent2 = agent_random(PlayerColor.RED)
+    agent1 = agent_mcts(PlayerColor.RED)
+    agent2 = agent_random(PlayerColor.BLUE)
 
     current_player = agent2
     board_dict = {}
