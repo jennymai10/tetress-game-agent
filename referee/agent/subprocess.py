@@ -1,6 +1,3 @@
-# COMP30024 Artificial Intelligence, Semester 1 2024
-# Project Part B: Game Playing Agent
-
 import sys
 from contextlib import contextmanager
 from importlib import import_module

@@ -1,6 +1,3 @@
-# COMP30024 Artificial Intelligence, Semester 1 2024
-# Project Part B: Game Playing Agent
-
 import gc
 import time
 from pathlib import Path

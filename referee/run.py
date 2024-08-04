@@ -1,13 +1,3 @@
-# COMP30024 Artificial Intelligence, Semester 1 2024
-# Project Part B: Game Playing Agent
-
-# Most logic pertaining to the referee's running and logging of a game is
-# contained in this file. We define a function `run_game` which takes a list of
-# players and a list of event handlers, then runs the game asynchronously,
-# yielding the game updates to the given event handlers. Event handlers can be
-# used to implement different types of referee behaviour (e.g. logging,
-# visualisation, pausing, etc.)
-
 import asyncio
 from time import time
 from typing import AsyncGenerator

@@ -1,7 +1,6 @@
 from referee.game import PlayerColor, Coord, PlaceAction
 from .utils import generate_moves, place_tetromino, count_holes
 
-
 class Ending:
     def __init__(self, root_board_dict: dict[Coord, PlayerColor], mycolor: PlayerColor):
         self.board = root_board_dict.copy()
