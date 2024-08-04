@@ -43,7 +43,7 @@ The Minimax algorithm with Alpha-Beta pruning was chosen based on its ability to
 
 ### Experimental Setup & Metrics
 
-![A game simulation](image.png)
+<img src="image.png" alt="A game simulation" width="300"/>
 
 A tournament-style experiment was conducted, where each agent played 100 games against every other agent. The performance metrics included:
 
