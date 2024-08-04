@@ -1,5 +1,4 @@
 import random
-import time
 
 from referee.game import PlayerColor, Action, PlaceAction, Coord, BOARD_N, Board, IllegalActionException
 from referee.game.pieces import PieceType, create_piece
