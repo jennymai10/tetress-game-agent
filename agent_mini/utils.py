@@ -1,6 +1,4 @@
 import random
-import time
-
 from .disjointset import DisjointSet
 from referee.game import Coord, PlaceAction, PlayerColor, IllegalActionException, BOARD_N
 from referee.game.pieces import PieceType, create_piece

@@ -1,15 +1,3 @@
-# COMP30024 Artificial Intelligence, Semester 1 2024
-# Project Part B: Game Playing Agent
-
-# This is the main entry point for the referee module. For detailed guidance on
-# referee usage/command line options, run:
-#
-#   python -m referee --help
-#
-# NOTE: For the purposes of the project you do not need to understand all of
-# the inner workings of this module. The only relevant parts are in the `game`
-# module, as described in the project specification.
-
 import os
 import asyncio
 from argparse import Namespace

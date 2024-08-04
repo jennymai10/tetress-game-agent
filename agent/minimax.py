@@ -1,6 +1,4 @@
 from .utils import generate_moves, place_tetromino, winner, heuristic_evaluation, board_to_string
-import json
-
 
 class MinimaxNode:
     def __init__(self, board, move, color):

@@ -1,6 +1,3 @@
-# COMP30024 Artificial Intelligence, Semester 1 2024
-# Project Part B: Game Playing Agent
-
 import random
 from referee.game import PlayerColor, Action, PlaceAction, Coord
 from .utils import render_board, place_tetromino, generate_moves, random_first_move
