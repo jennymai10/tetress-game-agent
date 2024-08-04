@@ -1,9 +1,9 @@
 import time
 import random
 from referee.game import PlayerColor, Coord, PlaceAction
-from agent_mc.utils import render_board, count_holes, generate_possible_moves, place_tetromino
-from agent_mc.mcts import MCTS
-from agent_mc.ending import Ending
+from agent.utils import render_board, count_holes, generate_possible_moves, place_tetromino
+from agent.mcts import MCTS
+from agent.ending import Ending
 
 target = None
 board = {}
